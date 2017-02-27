@@ -1,0 +1,50 @@
+extends layout
+
+block content
+    div(class='top-content')
+        div(class='container')
+            div(class='row')
+                div(class='col-sm-8 col-sm-offset-2 text')
+                    h1 Social Media Filter
+                    div(class='description')
+                        p This is a very basic demo to illustrate the front end.
+            div(class='row')
+                div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
+                    form(role='form', action='/anonymized', method='get', class='f1')
+                        h3 Social Media Examine
+                        p Statistic Report
+                        div(class='f1-steps')
+                            div(class='f1-progress')
+                                div(class='f1-progress-line', data-now-value='30', data-number-of-steps='5',
+                                style='width: 30%;')
+                            div(class='f1-step')
+                                div(class='f1-step-icon')
+                                    i(class='fa fa-id-card')
+                                p Twitter Account
+                            div(class='f1-step active')
+                                div(class='f1-step-icon')
+                                    i(class='fa fa-bar-chart')
+                                p Statistic Report
+                            div(class='f1-step')
+                                div(class='f1-step-icon')
+                                    i(class='fa fa-user-secret')
+                                p Anonymized Twitter Data
+                            div(class='f1-step')
+                                div(class='f1-step-icon')
+                                    i(class='fa fa-twitter')
+                                p Original Twitter Data
+                            div(class='f1-step')
+                                div(class='f1-step-icon')
+                                    i(class='fa fa-gavel')
+                                p Make a Decision
+                        fieldset
+                            h4 Flagged Tweets:
+                            p Number: 123 Percentage: 11%
+                            h4 Blacklist Followers:
+                            p Number: 321 Percentage: 22%
+                            h4 Do you have enough information to make a decision?
+                            div(class='f1-buttons')
+                                button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
+                                button(type='submit', class='btn btn-no', name='action', value='no') No
+
+block script

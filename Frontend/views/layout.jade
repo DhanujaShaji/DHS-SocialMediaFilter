@@ -1,7 +1,22 @@
 doctype html
 html
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    block content
+    head
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title= title
+        link(rel='stylesheet', href='/stylesheets/googleapis.min.css')
+        link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
+        link(rel='stylesheet', href='/stylesheets/font-awesome.min.css')
+        link(rel='stylesheet', href='/stylesheets/form-elements.css')
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        block content
+        script(src='/javascripts/jquery-1.11.1.min.js')
+        script(src='/javascripts/bootstrap.min.js')
+        script(src='/javascripts/tooltip.js')
+        script(src='/javascripts/popover.js')
+        script(src='/javascripts/jquery.backstretch.min.js')
+        script(src='/javascripts/retina-1.1.0.min.js')
+        script(src='/javascripts/scripts.js')
+        block script
