@@ -38,11 +38,16 @@ block content
                                     i(class='fa fa-gavel')
                                 p(class='hidden-xs') Make a Decision
                         fieldset
-                            h4 Flagged Tweets:
-                            p Number: 123 Percentage: 11%
-                            h4 Blacklist Followers:
-                            p Number: 321 Percentage: 22%
-                            h4 Do you have enough information to make a decision?
+                            each section in data
+                                h4 #{section['title']}
+                                each subsection in section['content']
+                                    if subsection['type'] == 'paragraph'
+                                        p #{subsection['content']}
+                            //h4 Flagged Tweets:
+                            //p Total Number: 123 Flagged Number: 23 Percentage: xx%
+                            //h4 Blacklist Followers:
+                            //p Total Number: 321 Flagged Number: 21 Percentage: xx%
+                            //h4 Do you have enough information to make a decision?
                             div(class='f1-buttons')
                                 button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
                                 button(type='submit', class='btn btn-no', name='action', value='no') No
