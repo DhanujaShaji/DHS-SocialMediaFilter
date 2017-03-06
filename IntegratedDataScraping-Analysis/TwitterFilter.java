@@ -114,7 +114,7 @@ public class TwitterFilter {
         FileWriter fw2 = new FileWriter("BlacklistedFollowers.txt");
         BufferedWriter bw2 = new BufferedWriter(fw);
         TwitterFilter tf = new TwitterFilter();
-        List<String> flags = new ArrayList<>();
+        %%List<String> flags = new ArrayList<>();
         flags.add("test3");
         TwitterScraper tS =new TwitterScraper(args[0]);
         List<String> twitts = new ArrayList<>();
@@ -124,7 +124,7 @@ public class TwitterFilter {
         for(String s: checkRes){
             bw.write(s);
         }
-        BlackList blacklist = new BlackList("BlackList.txt");
+        %%BlackList blacklist = new BlackList("BlackList.txt");
         //System.out.println(blacklist.showBlacklist());
         List<String> list = new ArrayList<>();
         list = tS.getFollowers();
