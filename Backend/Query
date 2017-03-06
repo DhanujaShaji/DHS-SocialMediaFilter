@@ -1,0 +1,79 @@
+
+CREATE TABLE user (
+    userId int(10) NOT NULL AUTO_INCREMENT, 
+    userName VARCHAR(30) NOT NULL,
+    location VARCHAR(100),
+    fullName VARCHAR(100),
+    PRIMARY KEY (userId)
+)ENGINE=INNODB;
+
+CREATE TABLE tags (
+    tagId int(10) NOT NULL AUTO_INCREMENT, 
+    tagText VARCHAR(100), 
+    PRIMARY KEY(tagId)
+)ENGINE=INNODB;
+
+CREATE TABLE tweets (
+    tweetId INT NOT NULL AUTO_INCREMENT,
+    userId INT(10),
+    tweetText VARCHAR(300),
+    postLocation VARCHAR(100),
+    postTime DATETIME,
+    PRIMARY KEY (tweetID),
+    INDEX par_ind (userId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE follow (
+    id int(10) NOT NULL AUTO_INCREMENT,
+    userId int(10) NOT NULL,
+    followerId int(10) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (followerId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+) ENGINE=INNODB AUTO_INCREMENT=1;
+
+CREATE TABLE blacklist (
+    userId int(10) NOT NULL,
+    userName VARCHAR(30) NOT NULL,
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE flag(
+    flagId int(10) NOT NULL AUTO_INCREMENT,
+    flagContext VARCHAR(100) NOT NULL,
+    PRIMARY KEY (flagId)
+)
+
+CREATE TABLE anonymized (
+    tweetId INT NOT NULL AUTO_INCREMENT,
+    userId INT(10),
+    tweetText VARCHAR(300),
+    postLocation VARCHAR(100),
+    postTime DATETIME,
+    PRIMARY KEY (tweetID),
+    INDEX par_ind (userId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE tags2tweets (
+    tweetId INT NOT NULL,
+    tagId int(10) NOT NULL,
+    position INT NOT NULL,
+    FOREIGN KEY (tweetId)
+        REFERENCES tweets(tweetId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (tagId)
+        REFERENCES tags(tagId)
+        ON DELETE CASCADE
+)
