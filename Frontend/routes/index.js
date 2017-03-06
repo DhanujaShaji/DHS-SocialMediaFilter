@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var db = require('../db.js');
+var conn = null;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -13,6 +15,16 @@ router.get('/submit', function(req, res, next) {
 
 /* GET report page. */
 router.get('/report', function(req, res, next) {
+    var account = req.query.Account;
+    if (!!conn && !!conn._socket.readable) {
+        conn = conn;
+    } else {
+        conn = db.getConnection(db.client, db.settings);
+        db.connectDB(conn);
+    }
+    conn.query('SELECT * FROM user', function(err, result) {
+        console.log(result);
+    });
     res.render('report', { title: 'Statistic Report' });
 });
 
