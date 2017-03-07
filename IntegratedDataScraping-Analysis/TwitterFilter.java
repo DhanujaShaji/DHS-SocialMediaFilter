@@ -1,10 +1,12 @@
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
@@ -21,6 +23,8 @@ public class TwitterFilter {
     private static final String METHOD_GET_FLAGS = BASE_METHOD + "getblacklist";
     private static final String METHOD_ADD_FLAGS = BASE_METHOD + "addtoblacklist";
     private static final String METHOD_CHECK = BASE_METHOD + "check";
+    private static final String FLAGGED_WORDS = "./doc/Flagged.txt";
+    private static final String BLACK_LIST = "./doc/DemoBlacklist.txt";
     
     private String tID;
     private HashMap<String, String> params;
@@ -80,6 +84,7 @@ public class TwitterFilter {
     public List<String> checkTwitts(List<String> twitts) {
         List<String> flaged = new ArrayList<>();
         List<String> notFlaged = new ArrayList<>();
+//        List<String> flagedDetail = new ArrayList<String>();
         
         params.put("method", METHOD_CHECK);
         for (String twitt : twitts) {
@@ -91,8 +96,9 @@ public class TwitterFilter {
                 int found = Integer.parseInt((String)((JSONObject) jsonObj.get("rsp")).get("found"));
                 if (found == 0)
                     notFlaged.add(twitt);
-                else
+                else {
                     flaged.add(twitt);
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -104,34 +110,55 @@ public class TwitterFilter {
         return res;
     }
     
+    private void readFile(List<String> list, String filename) {
+        Scanner scanner = null;
+        
+        try {
+            scanner = new Scanner(new File(filename), "UTF-8");
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+//                if (Integer.parseInt(line.split("\\s++")[0]) > 100000) {
+                    list.add(line.trim());
+//                }
+            }
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+        } catch(NumberFormatException e) {
+            e.printStackTrace();
+        } finally {
+            if (scanner != null) scanner.close();
+        }
+    }
     /**
      * Demo usage of TwitterFilter class.
      * @param args
      */
-    public static void main (String[] args) throws FileNotFoundException, IOException {
-        FileWriter fw = new FileWriter("Tweet.txt");
-        BufferedWriter bw = new BufferedWriter(fw);
-        FileWriter fw2 = new FileWriter("BlacklistedFollowers.txt");
-        BufferedWriter bw2 = new BufferedWriter(fw);
-        TwitterFilter tf = new TwitterFilter();
-        %%List<String> flags = new ArrayList<>();
-        flags.add("test3");
-        TwitterScraper tS =new TwitterScraper(args[0]);
-        List<String> twitts = new ArrayList<>();
-        twitts = tS.getTweet();
-        List<String> checkRes = tf.checkTwitts(twitts);
-        System.out.println(checkRes.toString());
-        for(String s: checkRes){
-            bw.write(s);
-        }
-        %%BlackList blacklist = new BlackList("BlackList.txt");
-        //System.out.println(blacklist.showBlacklist());
-        List<String> list = new ArrayList<>();
-        list = tS.getFollowers();
-        System.out.println(blacklist.checkFollowers(list).toString());
-        for(String s: blacklist.checkFollowers(list)){
-            bw2.write(s);
-        }
-    }
+    public static void main (String[] args) throws FileNotFoundException, IOException{
+      FileWriter fw = new FileWriter("Tweet.txt");
+      BufferedWriter bw = new BufferedWriter(fw);
+      FileWriter fw2 = new FileWriter("BlacklistedFollowers.txt");
+      BufferedWriter bw2 = new BufferedWriter(fw);
+      TwitterFilter tf = new TwitterFilter();
+      
+      List<String> flags = new ArrayList<>();
+      tf.readFile(flags, FLAGGED_WORDS);
+      tf.addFlags(flags);
+      
+      TwitterScraper tS =new TwitterScraper(args[0]);
+      List<String> twitts = new ArrayList<>();
+      twitts = tS.getTweet();
+      List<String> checkRes = tf.checkTwitts(twitts);
+      System.out.println(checkRes.toString());
+      for(String s: checkRes){
+          bw.write(s);
+      }
+      BlackList blacklist = new BlackList(BLACK_LIST);
+      //System.out.println(blacklist.showBlacklist());
+      List<String> list = new ArrayList<>();
+      list = tS.getFollowers();
+      System.out.println(blacklist.checkFollowers(list).toString());
+      for(String s: blacklist.checkFollowers(list)){
+          bw2.write(s);
+      }
+  }
 }
-
