@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +25,8 @@ public class TwitterFilter {
     private static final String METHOD_ADD_FLAGS = BASE_METHOD + "addtoblacklist";
     private static final String METHOD_REMOVE_FLAGS = BASE_METHOD + "removefromblacklist";
     private static final String METHOD_CHECK = BASE_METHOD + "check";
-    private static final String FLAGGED_WORDS = "./doc/Flagged.txt";
-    private static final String BLACK_LIST = "./doc/DemoBlacklist.txt";
+    private static final String FLAGGED_WORDS = "Flagged.txt";
+    private static final String BLACK_LIST = "DemoBlacklist.txt";
     
     private List<String> flags;
     private String tID;
@@ -172,28 +173,31 @@ public class TwitterFilter {
      * @param args
      */
     public static void main (String[] args) throws FileNotFoundException, IOException{
-      FileWriter fw = new FileWriter("Tweet.txt");
-      BufferedWriter bw = new BufferedWriter(fw);
-      FileWriter fw2 = new FileWriter("BlacklistedFollowers.txt");
-      BufferedWriter bw2 = new BufferedWriter(fw);
-      
+      //FileWriter fw = new FileWriter("Tweet.txt");
+      //BufferedWriter bw = new BufferedWriter(fw);
+      //FileWriter fw2 = new FileWriter("BlacklistedFollowers.txt");
+      //BufferedWriter bw2 = new BufferedWriter(fw);
+      PrintWriter writer = new PrintWriter(new File("Filteredtweet.txt"), "UTF-8");
+      PrintWriter writer2 = new PrintWriter(new File("BlackListedFriends.txt"), "UTF-8");
       TwitterFilter tf = new TwitterFilter();
       
-      TwitterScraper tS =new TwitterScraper("SenWarren");
+      TwitterScraper tS =new TwitterScraper(args[0]);
       List<String> twitts = new ArrayList<>();
       twitts = tS.getTweet();
       List<String> checkRes = tf.checkTwitts(twitts);
 
       for(String s: checkRes){
-          bw.write(s);
+          writer.println(s+"\n \n");
       }
+      writer.close();
       BlackList blacklist = new BlackList(BLACK_LIST);
 
       List<String> list = new ArrayList<>();
-      list = tS.getFollowers();
+      list = tS.getFriends();
       List<String> checkFollowersRes = blacklist.checkFollowers(list);
       for(String s: checkFollowersRes){
-          bw2.write(s);
+          writer2.println(s);
       }
+      writer2.close();
   }
 }

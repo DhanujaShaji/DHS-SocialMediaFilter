@@ -23,12 +23,12 @@ public class TwitterScraper {
     private static final String TWITTER_ACCESS_TOKEN = "827249757194219522-uNPQOx58STRq9smSURrnAFORlIdZJwf";
     private static final String TWITTER_ACCESS_TOKEN_SECRET = "D6xFEz6cC4Ykmepzd5Wpafo384hJQwdH03tdXgxXED1OK";
     private static List<String> tweetText = new ArrayList<String>();
-    private static List<String> followers = new ArrayList<String>();
+    private static List<String> friends = new ArrayList<String>();
     public List<String> getTweet(){
         return tweetText;
     }
-    public List<String> getFollowers(){
-        return followers;
+    public List<String> getFriends(){
+        return friends;
     }
     public TwitterScraper(String ID) throws FileNotFoundException {
         ConfigurationBuilder cb = new ConfigurationBuilder();
@@ -40,7 +40,7 @@ public class TwitterScraper {
     TwitterFactory tf = new TwitterFactory(cb.build());
     Twitter twitter = tf.getInstance();
     PrintWriter pw = new PrintWriter(new File("tweet.csv"));
-    PrintWriter fw = new PrintWriter(new File("follower.csv"));
+    PrintWriter fw = new PrintWriter(new File("friends.csv"));
     StringBuilder sb = new StringBuilder();
     pw.write("Created_at , Tweet\n");
     fw.write("Twitter ID , Name\n");
@@ -59,12 +59,12 @@ public class TwitterScraper {
             }
             pw.close();
             
-            List<User> followersList = twitter.getFollowersList(ID, -1);
-            for (int i = 0; i < followersList.size(); i++){
-                User user = followersList.get(i);
+            List<User> friendsList = twitter.getFriendsList(ID, -1);
+            for (int i = 0; i < friendsList.size(); i++){
+                User user = friendsList.get(i);
                 String name = user.getName();
                 long id = user.getId();
-                followers.add(name);
+                friends.add(name);
                 StringBuilder sb2 = new StringBuilder();
                 sb2.append(user.getScreenName());
                 sb2.append(',');
