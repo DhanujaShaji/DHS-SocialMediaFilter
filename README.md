@@ -5,6 +5,7 @@
 ## Components
 
 - Frontend (User Interface)
+- List of Censored, Blacklisted, and flagged terms
 - Backend
 - Data Scraping
 - Data Analysis
@@ -13,6 +14,13 @@
 ## Frontend (User Interface)
 
 The frontend provides the user interface for the DHS agents. It allows DHS agents to submit Twitter accounts and review the data analysis results provided by our tool.
+
+### Censored, Blacklisted and flagged terms 
+ - Censored terms came from the sensitive information detailed in the project requirements
+  - specfically terms related to sexual orientation, financial information, illness (mostly cancer), various dating-related terms and sexual terms (gotten from various websites)
+ - flagged terms came directly from the DHS's watchlisted terms, which was published 
+ - blacklists were harder to find, after searching the internet
+ - Demo blacklist was a sample for demo-ing purposes, using Donald Trump's twitter and who he was following in order to cause the tool alarm 
 
 ### Technology Details
 
@@ -30,7 +38,7 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 - Make an Audit Decision
 
 ## IntegratedDataScraping+Analysis
-Consists of all codes required for data scraping and analysis. 
+- Consists of all codes required for data scraping and analysis. 
 
 ### File function explaination
 - "TwitterFilter.java": The main class and the twitter ID to be examined should be provided as command line argument.
