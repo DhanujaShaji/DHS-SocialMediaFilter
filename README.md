@@ -30,7 +30,7 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 - Make an Audit Decision
 
 ## IntegratedDataScraping+Analysis
-- Consists of all codes required for data scraping and analysis. 
+Consists of all codes required for data scraping and analysis. 
 
 ### File function explaination
 - "TwitterFilter.java": The main class and the twitter ID to be examined should be provided as command line argument.
