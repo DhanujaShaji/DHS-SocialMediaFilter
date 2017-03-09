@@ -17,9 +17,9 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 
 ### Censored, Blacklisted and flagged terms 
  - Censored terms came from the sensitive information detailed in the project requirements
-  - specfically terms related to sexual orientation, financial information, illness (mostly cancer), various dating-related terms and sexual terms (gotten from various websites)
+  - specfically terms related to sexual orientation, financial information, illness (mostly cancer), various dating-related terms and sexual terms (terms pulled from various websites)
  - flagged terms came directly from the DHS's watchlisted terms, which was published 
- - blacklists were harder to find, after searching the internet
+ - blacklists were harder to find, searched the internet for Twitter ID's of known terrorist groups 
  - Demo blacklist was a sample for demo-ing purposes, using Donald Trump's twitter and who he was following in order to cause the tool alarm 
 
 ### Technology Details
