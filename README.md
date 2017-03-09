@@ -15,13 +15,6 @@
 
 The frontend provides the user interface for the DHS agents. It allows DHS agents to submit Twitter accounts and review the data analysis results provided by our tool.
 
-### Censored, Blacklisted and flagged terms 
- - Censored terms came from the sensitive information detailed in the project requirements
-  - specfically terms related to sexual orientation, financial information, illness (mostly cancer), various dating-related terms and sexual terms (terms pulled from various websites)
- - flagged terms came directly from the DHS's watchlisted terms, which was published 
- - blacklists were harder to find, searched the internet for Twitter ID's of known terrorist groups 
- - Demo blacklist was a sample for demo-ing purposes, using Donald Trump's twitter and who he was following in order to cause the tool alarm 
-
 ### Technology Details
 
 - The frontend views are developed based on the Bootstrap Web Framework with JavaScript. 
@@ -36,6 +29,14 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 - Provide Anonymized Twitter Data
 - Uncover Original Twitter Data
 - Make an Audit Decision
+
+
+## Censored, Blacklisted and flagged terms 
+ - Censored terms came from the sensitive information detailed in the project requirements - Censored.txt
+  - specfically terms related to sexual orientation, financial information, illness (mostly cancer), various dating-related terms and sexual terms (terms pulled from various websites)
+ - flagged terms came directly from the DHS's watchlisted terms, which was published - Flagged.txt
+ - blacklists were harder to find, searched the internet for Twitter ID's of known terrorist groups - Blacklist.txt
+ - Demo blacklist was a sample for demo-ing purposes, using Donald Trump's twitter and who he was following in order to cause the tool alarm - DemoBlacklistNames.txt
 
 ## IntegratedDataScraping+Analysis
 - Consists of all codes required for data scraping and analysis. 
