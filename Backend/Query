@@ -17,6 +17,7 @@ CREATE TABLE tweets (
     tweetId INT NOT NULL AUTO_INCREMENT,
     userId INT(10),
     tweetText VARCHAR(300),
+    anonymizedText VARCHAR(300),
     postLocation VARCHAR(100),
     postTime DATETIME,
     PRIMARY KEY (tweetID),
@@ -53,19 +54,6 @@ CREATE TABLE flag(
     PRIMARY KEY (flagId)
 )
 
-CREATE TABLE anonymized (
-    tweetId INT NOT NULL AUTO_INCREMENT,
-    userId INT(10),
-    tweetText VARCHAR(300),
-    postLocation VARCHAR(100),
-    postTime DATETIME,
-    PRIMARY KEY (tweetID),
-    INDEX par_ind (userId),
-    FOREIGN KEY (userId)
-        REFERENCES user(userId)
-        ON DELETE CASCADE
-) ENGINE=INNODB;
-
 CREATE TABLE tags2tweets (
     tweetId INT NOT NULL,
     tagId int(10) NOT NULL,
@@ -75,5 +63,17 @@ CREATE TABLE tags2tweets (
         ON DELETE CASCADE,
     FOREIGN KEY (tagId)
         REFERENCES tags(tagId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE flags2tweets (
+    tweetId INT NOT NULL,
+    flatId int(10) NOT NULL,
+    position INT NOT NULL,
+    FOREIGN KEY (tweetId)
+        REFERENCES tweets(tweetId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (flagId)
+        REFERENCES flag(flagId)
         ON DELETE CASCADE
 )
