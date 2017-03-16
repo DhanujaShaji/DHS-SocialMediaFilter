@@ -1,6 +1,5 @@
 
 input[type="text"], 
-input[type="password"], 
 textarea, 
 textarea.form-control {
 	height: 44px;
@@ -28,7 +27,6 @@ textarea.form-control {
 }
 
 input[type="text"]:focus, 
-input[type="password"]:focus, 
 textarea:focus, 
 textarea.form-control:focus {
 	outline: 0;

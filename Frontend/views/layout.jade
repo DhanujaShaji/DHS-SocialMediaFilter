@@ -11,11 +11,20 @@ html
         link(rel='stylesheet', href='/stylesheets/form-elements.css')
         link(rel='stylesheet', href='/stylesheets/style.css')
     body
-        block content
+        div(class='top-content')
+            div(class='container')
+                div(class='row')
+                    div(class='col-sm-8 col-sm-offset-2 text')
+                        h1 Social Media Filter
+                        div(class='description')
+                            p This is a very basic demo to illustrate the front end.
+                block content
         script(src='/javascripts/jquery-1.11.1.min.js')
         script(src='/javascripts/bootstrap.min.js')
         script(src='/javascripts/tooltip.js')
         script(src='/javascripts/popover.js')
+        script(src='/javascripts/transition.js')
+        script(src='/javascripts/collapse.js')
         script(src='/javascripts/jquery.backstretch.min.js')
         script(src='/javascripts/retina-1.1.0.min.js')
         script(src='/javascripts/scripts.js')
