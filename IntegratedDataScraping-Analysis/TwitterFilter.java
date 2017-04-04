@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
-
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -27,24 +26,19 @@ public class TwitterFilter {
     private static final String METHOD_CHECK = BASE_METHOD + "check";
     private static final String FLAGGED_WORDS = "Flagged.txt";
     private static final String BLACK_LIST = "DemoBlacklist.txt";
-    
     private List<String> flags;
     private String tID;
-    private HashMap<String, String> params;
-    
+    private HashMap<String, String> params;    
     public TwitterFilter() {
         params = new HashMap<>();
         params.put("api_key", API_KEY);
         params.put("format", "json");
-        
         flags = new ArrayList<>();
         readFile(flags, FLAGGED_WORDS);
     }
-
     public String getTID() {
         return tID;
     }
-
     public void setTID(String tID) {
         this.tID = tID;
     }
@@ -60,8 +54,7 @@ public class TwitterFilter {
             flagsJA = (JSONArray)((JSONObject) jsonObj.get("rsp")).get("word");
         } catch (ParseException e) {
             e.printStackTrace();
-        }
-        
+        }   
         List<String> res = new ArrayList<>(flagsJA);
         return res;
     }
@@ -74,14 +67,13 @@ public class TwitterFilter {
         params.put("method", METHOD_ADD_FLAGS);
         for (String flag : flags) {
             params.put("word", flag);
-            HttpHelper.get(BASE_URL, params);
-            
+            HttpHelper.get(BASE_URL, params);       
         }
         params.remove("word");
     }
     
     /**
-     * clear all flags
+     * Function to clear all flags
      */
     public void clearFlags() {
         List<String> currFlags = getFlags();
@@ -97,16 +89,15 @@ public class TwitterFilter {
     
     /**
      * Call this function to check tweets of a given person.
-     * @param twitts twitters of a given person
-     * @return Return a list of all twitters of this person. The first string is a number \
+     * @param tweets Tweets of a given person
+     * @return Return a list of all tweets of this person. The first string is a number \
      * that shows how many tweets are flagged. Suppose the number here is N, then the following \
      * N strings are flagged tweets. Strings after these N strings are tweets that aren't flagged. 
      */
     public List<String> checkTweets(List<String> tweets) {
         List<String> flaged = new ArrayList<>();
         List<String> notFlaged = new ArrayList<>();
-        List<String> flaggedDetail = new ArrayList<String>();
-        
+        List<String> flaggedDetail = new ArrayList<String>();    
         params.put("method", METHOD_CHECK);
         for (String tweet : tweets) {
             params.put("text", tweet);
@@ -129,7 +120,6 @@ public class TwitterFilter {
         res.add(Integer.toString(flaged.size()));
         res.addAll(flaged);
         res.addAll(notFlaged);
-        
         System.out.println("Twitter check result:");
         System.out.println(res.toString());
         System.out.println("Flag detail:");
@@ -150,7 +140,6 @@ public class TwitterFilter {
     
     private void readFile(List<String> list, String filename) {
         Scanner scanner = null;
-        
         try {
             scanner = new Scanner(new File(filename), "UTF-8");
             while (scanner.hasNextLine()) {
@@ -167,6 +156,7 @@ public class TwitterFilter {
             if (scanner != null) scanner.close();
         }
     }
+    
     /**
      * Demo usage of TwitterFilter class.
      * @param args
@@ -179,13 +169,11 @@ public class TwitterFilter {
       List<String> tweets = new ArrayList<>();
       tweets = tS.getTweet();
       List<String> checkRes = tf.checkTweets(tweets);
-
       for(String s: checkRes){
           writer.println(s+"\n \n");
       }
       writer.close();
       BlackList blacklist = new BlackList(BLACK_LIST);
-
       List<String> list = new ArrayList<>();
       list = tS.getFriends();
       List<String> checkFollowersRes = blacklist.checkFollowers(list);
