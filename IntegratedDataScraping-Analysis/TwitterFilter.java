@@ -39,7 +39,6 @@ public class TwitterFilter {
         
         flags = new ArrayList<>();
         readFile(flags, FLAGGED_WORDS);
-//        addFlags(flags);
     }
 
     public String getTID() {
@@ -68,7 +67,7 @@ public class TwitterFilter {
     }
     
     /**
-     * Use this function to add flags that we want to check in Twitters.
+     * Use this function to add flags that we want to check in Tweets.
      * @param flags list of flags
      */
     public void addFlags(List<String> flags) {
@@ -97,30 +96,30 @@ public class TwitterFilter {
     }
     
     /**
-     * Call this function to check twitters of a given person.
+     * Call this function to check tweets of a given person.
      * @param twitts twitters of a given person
      * @return Return a list of all twitters of this person. The first string is a number \
-     * that shows how many twitters are flagged. Suppose the number here is N, then the following \
-     * N strings are flagged twitters. Strings after these N strings are twitters that aren't flagged. 
+     * that shows how many tweets are flagged. Suppose the number here is N, then the following \
+     * N strings are flagged tweets. Strings after these N strings are tweets that aren't flagged. 
      */
-    public List<String> checkTwitts(List<String> twitts) {
+    public List<String> checkTweets(List<String> tweets) {
         List<String> flaged = new ArrayList<>();
         List<String> notFlaged = new ArrayList<>();
         List<String> flaggedDetail = new ArrayList<String>();
         
         params.put("method", METHOD_CHECK);
-        for (String twitt : twitts) {
-            params.put("text", twitt);
+        for (String tweet : tweets) {
+            params.put("text", tweet);
             String response = HttpHelper.get(BASE_URL, params);
             JSONParser jp = new JSONParser();
             try {
                 JSONObject jsonObj = (JSONObject)jp.parse(response);
                 int found = Integer.parseInt((String)((JSONObject) jsonObj.get("rsp")).get("found"));
                 if (found == 0)
-                    notFlaged.add(twitt);
+                    notFlaged.add(tweet);
                 else {
-                    flaged.add(twitt);
-                    flaggedDetail.add(getFlaggedDetail(twitt));
+                    flaged.add(tweet);
+                    flaggedDetail.add(getFlaggedDetail(tweet));
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -131,17 +130,17 @@ public class TwitterFilter {
         res.addAll(flaged);
         res.addAll(notFlaged);
         
-        System.out.println("twitter check result:");
+        System.out.println("Twitter check result:");
         System.out.println(res.toString());
-        System.out.println("flag detail:");
+        System.out.println("Flag detail:");
         System.out.println(flaggedDetail.toString());
         return res;
     }
     
-    private String getFlaggedDetail(String twit) {
+    private String getFlaggedDetail(String tweet) {
         StringBuilder sb = new StringBuilder();
         for (String flag : flags) {
-            int index = twit.toLowerCase().indexOf(flag.toLowerCase());
+            int index = tweet.toLowerCase().indexOf(flag.toLowerCase());
             if (index != -1) {
                 sb.append("[").append(index).append("]").append(flag);
             }
@@ -173,18 +172,13 @@ public class TwitterFilter {
      * @param args
      */
     public static void main (String[] args) throws FileNotFoundException, IOException{
-      //FileWriter fw = new FileWriter("Tweet.txt");
-      //BufferedWriter bw = new BufferedWriter(fw);
-      //FileWriter fw2 = new FileWriter("BlacklistedFollowers.txt");
-      //BufferedWriter bw2 = new BufferedWriter(fw);
       PrintWriter writer = new PrintWriter(new File("Filteredtweet.txt"), "UTF-8");
       PrintWriter writer2 = new PrintWriter(new File("BlackListedFriends.txt"), "UTF-8");
       TwitterFilter tf = new TwitterFilter();
-      
       TwitterScraper tS =new TwitterScraper(args[0]);
-      List<String> twitts = new ArrayList<>();
-      twitts = tS.getTweet();
-      List<String> checkRes = tf.checkTwitts(twitts);
+      List<String> tweets = new ArrayList<>();
+      tweets = tS.getTweet();
+      List<String> checkRes = tf.checkTweets(tweets);
 
       for(String s: checkRes){
           writer.println(s+"\n \n");
