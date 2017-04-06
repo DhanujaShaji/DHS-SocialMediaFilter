@@ -7,10 +7,12 @@ block content
                 h3 Log in
                 fieldset
                     div(class="form-group")
-                        label(for="emailAddress") Email address
-                        input(type="email", name="emailAddress", class="form-control", id="emailAddress", placeholder="Email")
+                        label(for="username") Username
+                        input(type="text", name="username", class="form-control", id="username", placeholder="Username")
                     div(class="form-group")
                         label(for="psd") Password
                         input(type="password", name="psd", class="form-control", id="psd", placeholder="Password")
-                    button(type='submit', class='btn btn-submit') Login
+                    div(class="f1-buttons")
+                        button(type='submit', class='btn btn-submit', name='action', value='login') Login
+                        button(type='submit', class='btn btn-submit', name='action', value='forgetPassword') Forget Password
 block script

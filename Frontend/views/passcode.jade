@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    div(class='row')
+        div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
+            form(role='form', action='/passcode', method='get', class='f1')
+                h3 Generate Passcode for Unfiltered Content Review
+                fieldset
+                    h4 Use/Distribute this code to access unfiltered Twitter content for a given account. This code will expire in 2 minutes.
+                    div(class='input-group')
+                        input(type='text', class='form-control', value=data["passcode"], id='snipsnip')
+                        span(class='input-group-btn')
+                            button(type='button', class='btn btn-secondary', style='margin:0;margin-left: -1px;height: 34px;color: #333;line-height: 0px;', data-clipboard-target='#snipsnip', id='snipper') Copy
+                    div(class="f1-buttons")
+                        button(type='submit', class='btn btn-submit', name='action', value='generate') Generate
+                        button(type='submit', class='btn btn-info', name='action', value='back') Back
+
+block script
