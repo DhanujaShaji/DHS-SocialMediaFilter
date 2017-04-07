@@ -37,8 +37,11 @@ block content
                             if subsection['type'] == 'paragraph'
                                 p #{subsection['content']}
                     h4 Do you have enough information to make a decision?
+                    p Click 'Yes', if you can make a decision.
+                    p Click 'No', if you need to review more information before making a decision.
                     div(class='f1-buttons')
-                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes, I can make a decision.
-                        button(type='submit', class='btn btn-no', name='action', value='no') No, I need to review more information before making a decision.
-                        button(type='submit', class='btn btn-info', name='action', value='back') Home
+                        input(type='hidden', name='twitter', value=account)
+                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
+                        button(type='submit', class='btn btn-no', name='action', value='no') No
+                        button(type='submit', class='btn btn-info', name='action', value='home') Home
 block script

@@ -32,8 +32,11 @@ block content
                         p(class='hidden-xs') Make a Decision
                 fieldset
                     h4 Make a Decision
+                    p Click 'Yes', if the account passes review.
+                    p Click 'No', if the account does not pass review. Further discussion or review is needed.
                     div(class='f1-buttons')
-                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes, the account passes review.
-                        button(type='submit', class='btn btn-no', name='action', value='no') No, the account does not pass review. Further discussion or review is needed.
-                        button(type='submit', class='btn btn-info', name='action', value='back') Home
+                        input(type='hidden', name='twitter', value=account)
+                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
+                        button(type='submit', class='btn btn-no', name='action', value='no') No
+                        button(type='submit', class='btn btn-info', name='action', value='home') Home
 block script

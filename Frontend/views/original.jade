@@ -45,10 +45,10 @@ block content
                                             a  #{item['content']}
                                         else if item['type'] == 'tag'
                                             a  #{item['content']}
-                        h4 Do you have enough information to make a decision?
                         div(class='f1-buttons')
-                            button(type='submit', class='btn btn-yes') Make a Decision
-                            button(type='submit', class='btn btn-info', name='action', value='back') Home
+                            input(type='hidden', name='twitter', value=account)
+                            button(type='submit', class='btn btn-yes', name='action', value='submit') Make a Decision
+                            button(type='submit', class='btn btn-info', name='action', value='home') Home
 
 block script
     script.

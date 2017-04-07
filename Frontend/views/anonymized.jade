@@ -46,11 +46,14 @@ block content
                                     else if item['type'] == 'tag'
                                         a  #{item['content']}
                     h4 Do you have enough information to make a decision?
+                    p Click 'Yes', if you can make a decision.
+                    p Click 'No', if you need to review more information before making a decision.
                     div(class='f1-buttons')
-                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes, I can make a decision.
+                        input(type='hidden', name='twitter', value=account)
+                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
                         button(type='button', class='btn btn-no', data-toggle="collapse",
-                        data-target="#passcode", aria-expanded="false", aria-controls="passcode") No, I need to review more information before making a decision.
-                        button(type='submit', class='btn btn-info', name='action', value='back') Home
+                        data-target="#passcode", aria-expanded="false", aria-controls="passcode") No
+                        button(type='submit', class='btn btn-info', name='action', value='home') Home
                         div(class="collapse", id="passcode")
                             p Please enter the passcode from your supervisor
                             div(class='form-group')

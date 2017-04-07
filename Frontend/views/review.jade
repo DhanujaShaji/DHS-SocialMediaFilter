@@ -7,27 +7,22 @@ block content
                 h3 Administration Panel: Review Past Decisions.
                 fieldset
                     h4 Decision Lists:
-                    div(class="list-group")
-                        a(href="/detail", class="list-group-item")
-                            span(class="glyphicon glyphicon-ok")
-                            | Accept Passenger 1
-                        a(href="/detail", class="list-group-item")
-                            span(class="glyphicon glyphicon-ok")
-                            |  Accept Passenger 2
-                        a(href="/detail", class="list-group-item")
-                            span(class="glyphicon glyphicon-ok")
-                            |   Accept Passenger 3
-                        a(href="/detail", class="list-group-item")
-                            span(class="glyphicon glyphicon-ok")
-                            |   Accept Passenger 4
-                        a(href="/detail", class="list-group-item")
-                            span(class="glyphicon glyphicon-remove")
-                            |   Deny Passenger 1
-                        a(href="/detail", class="list-group-item")
-                            span(class="glyphicon glyphicon-remove")
-                            |   Deny Passenger 2
+                    table(class="table table-striped")
+                        thead
+                            tr
+                                th #
+                                th Date
+                                th Twitter Handle
+                                th Agent
+                        tbody
+                            if typeof(previousDecisions) != "undefined"
+                                each decision in previousDecisions
+                                    tr(onclick="location.href=\'detail?action=review&id=" + decision['id'] + "\'")
+                                        th= decision['id']
+                                        td= decision['date']
+                                        td= decision['twitter']
+                                        td= decision['agent']
                     div(class="f1-buttons")
-                        button(type='submit', class='btn btn-info', name='action', value='back') Change Password
-                        button(type='submit', class='btn btn-info', name='action', value='back') Home
+                        button(type='submit', class='btn btn-info', name='action', value='home') Home
 
 block script
