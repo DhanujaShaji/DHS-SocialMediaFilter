@@ -43,9 +43,10 @@
     <option name="id" value="1485476697921" />
     <option name="name" value="default" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="IntelliJ IDEA Community Edition IC-163.10154.41" project-jdk-type="IDEA JDK">
-    <output url="file://$PROJECT_DIR$/out" />
+  <component name="ProjectPlainTextFileTypeManager">
+    <file url="file://$PROJECT_DIR$/Initialize.js" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="IntelliJ IDEA Community Edition IC-163.10154.41" project-jdk-type="IDEA JDK" />
   <component name="masterDetails">
     <states>
       <state key="GlobalLibrariesConfigurable.UI">
