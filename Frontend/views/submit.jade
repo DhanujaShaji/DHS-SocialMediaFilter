@@ -4,8 +4,8 @@ block content
     div(class='row')
         div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
             form(role='form', action='/submit', method='get', class='f1')
-                h3 Social Media Examine
-                p Fill in the form to get pass
+                h3 Twitter Account Review
+                p Fill in the Twitter handle
                 div(class='f1-steps')
                     div(class='f1-progress')
                         div(class='f1-progress-line', data-now-value='10', data-number-of-steps='5',
@@ -33,10 +33,12 @@ block content
                 fieldset
                     h4 Please Enter the Twitter Account
                     div(class='form-group')
-                        label(class='sr-only', for='f1-twitter-account') Twitter Account
-                        input(type='text', name='account', placeholder='Twitter Account...',
-                        class='f1-twitter-account form-control', id='f1-twitter-account')
+
+                        label(class='sr-only', for='twitter') Twitter handle
+                        input(type='text', name='twitter', placeholder='Enter Twitter handle here…',
+                        class='f1-twitter-account form-control', id='twitter')
                     div(class='f1-buttons')
-                        button(type='submit', class='btn btn-submit') Submit
+                        button(type='submit', class='btn btn-submit', name='action', value='submit') Submit
+                        button(type='submit', class='btn btn-info', name='action', value='home') Home
 
 block script

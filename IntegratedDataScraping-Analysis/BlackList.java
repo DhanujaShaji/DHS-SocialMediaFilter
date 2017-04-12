@@ -1,4 +1,6 @@
+package analyzer;
 import java.io.BufferedWriter;
+//import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class BlackList {
-    private static String BLACKLIST_FILE = "./doc/blacklist";
+    private static String BLACKLIST_FILE = "./blacklist";
     private HashSet<String> blacklistSet;
 
     /**
@@ -21,7 +23,7 @@ public class BlackList {
      */
     public BlackList(String file) {
         BLACKLIST_FILE = file;
-        blacklistSet = new HashSet<>();
+        blacklistSet = new HashSet<String>();
         Scanner scanner = null;
         
         try {
@@ -89,10 +91,11 @@ public class BlackList {
      * @param name Twitter ID of the person to add.
      */
     public void addToBlacklist(String name) {
-        List<String> list = new ArrayList<>();
+        List<String> list = new ArrayList<String>();
         list.add(name);
         this.addToBlacklist(list);
     }
+    
 
     /**
      * Check whether followers of a given person exist in blacklist.
@@ -100,12 +103,28 @@ public class BlackList {
      * @return A list of followers in blacklist.
      */
     public List<String> checkFollowers(List<String> list) {
-        List<String> res = new ArrayList<>();
+        List<String> res = new ArrayList<String>();
         for (String s : list) {
             if (blacklistSet.contains(s)) {
                 res.add(s);
             }
         }
+        
+        System.out.println("check followers result:");
+        System.out.println(res.toString());
         return res;
+    }
+    
+    /**
+     * Demo usage of BlackList class.
+     * @param args
+     */
+    public static void main (String[] args) {
+        BlackList blacklist = new BlackList();
+        System.out.println(blacklist.showBlacklist());
+        List<String> list = new ArrayList<String>();
+        list.add("name");
+        list.add("name1");
+        System.out.println(blacklist.checkFollowers(list).toString());        
     }
 }

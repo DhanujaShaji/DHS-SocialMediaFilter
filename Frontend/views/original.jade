@@ -4,8 +4,8 @@ block content
     div(class='row')
         div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
             form(role='form', action='/original', method='get', class='f1')
-                h3 Social Media Examine
-                p Statistic Report
+                h3 Twitter Account Review
+                p Unfiltered Twitter Information for [Twitter_Handle]
                 div(class='f1-steps')
                     div(class='f1-progress')
                         div(class='f1-progress-line', data-now-value='70', data-number-of-steps='5',
@@ -45,9 +45,10 @@ block content
                                             a  #{item['content']}
                                         else if item['type'] == 'tag'
                                             a  #{item['content']}
-                        h4 Do you have enough information to make a decision?
                         div(class='f1-buttons')
-                            button(type='submit', class='btn btn-yes') Next
+                            input(type='hidden', name='twitter', value=account)
+                            button(type='submit', class='btn btn-yes', name='action', value='submit') Make a Decision
+                            button(type='submit', class='btn btn-info', name='action', value='home') Home
 
 block script
     script.

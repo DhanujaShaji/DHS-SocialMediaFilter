@@ -1,11 +1,13 @@
 extends layout
 
 block content
-  block content
-    div(class='top-content')
-      div(class='container')
-        div(class='row')
-          div(class='col-sm-8 col-sm-offset-2 text')
-            h1= message
-            h2= error.status
-            pre #{error.stack}
+    div(class='row')
+        div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
+            form(role='form', action='/', method='get', class='f1')
+                h3= message
+                fieldset
+                    h4= info
+                    div(class='f1-buttons')
+                        button(type='submit', class='btn btn-submit') Home
+
+block script

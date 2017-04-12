@@ -1,5 +1,3 @@
-
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -15,7 +13,7 @@ import twitter4j.User;
 
 /**
  *
- * @author dhanu
+ * @author DhanujaShaji
  */
 public class TwitterScraper {
     private static final String TWITTER_CONSUMER_KEY = "XFmTKLYLVlS5jAGpovhIxy39P";
@@ -32,11 +30,12 @@ public class TwitterScraper {
     }
     public TwitterScraper(String ID) throws FileNotFoundException {
         ConfigurationBuilder cb = new ConfigurationBuilder();
-    cb.setDebugEnabled(true)
-      .setOAuthConsumerKey(TWITTER_CONSUMER_KEY)
-      .setOAuthConsumerSecret(TWITTER_SECRET_KEY)
-      .setOAuthAccessToken(TWITTER_ACCESS_TOKEN)
-      .setOAuthAccessTokenSecret(TWITTER_ACCESS_TOKEN_SECRET);
+        // Configure Twitter API
+        cb.setDebugEnabled(true)
+          .setOAuthConsumerKey(TWITTER_CONSUMER_KEY)
+          .setOAuthConsumerSecret(TWITTER_SECRET_KEY)
+          .setOAuthAccessToken(TWITTER_ACCESS_TOKEN)
+          .setOAuthAccessTokenSecret(TWITTER_ACCESS_TOKEN_SECRET);
     TwitterFactory tf = new TwitterFactory(cb.build());
     Twitter twitter = tf.getInstance();
     PrintWriter pw = new PrintWriter(new File("tweet.csv"));
@@ -46,8 +45,7 @@ public class TwitterScraper {
     fw.write("Twitter ID , Name\n");
     System.out.println("done!");
     try {
-            List<Status> tweets = twitter.getUserTimeline(ID);
-           
+            List<Status> tweets = twitter.getUserTimeline(ID); //API call to get the User's Twitter timeline data
             for (Status tweet : tweets) {
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append(tweet.getCreatedAt());
@@ -58,8 +56,7 @@ public class TwitterScraper {
                 pw.write(sb1.toString());
             }
             pw.close();
-            
-            List<User> friendsList = twitter.getFriendsList(ID, -1);
+            List<User> friendsList = twitter.getFriendsList(ID, -1); //API call to get User's Friends list
             for (int i = 0; i < friendsList.size(); i++){
                 User user = friendsList.get(i);
                 String name = user.getName();

@@ -4,8 +4,8 @@ block content
     div(class='row')
         div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
             form(role='form', action='/report', method='get', class='f1')
-                h3 Social Media Examine
-                p Statistic Report
+                h3 Twitter Account Review
+                p Analysis of [Twitter_Handle]’s Account Complete. Here are the relevant results:
                 div(class='f1-steps')
                     div(class='f1-progress')
                         div(class='f1-progress-line', data-now-value='30', data-number-of-steps='5',
@@ -37,7 +37,11 @@ block content
                             if subsection['type'] == 'paragraph'
                                 p #{subsection['content']}
                     h4 Do you have enough information to make a decision?
+                    p Click 'Yes', if you can make a decision.
+                    p Click 'No', if you need to review more information before making a decision.
                     div(class='f1-buttons')
+                        input(type='hidden', name='twitter', value=account)
                         button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
                         button(type='submit', class='btn btn-no', name='action', value='no') No
+                        button(type='submit', class='btn btn-info', name='action', value='home') Home
 block script
