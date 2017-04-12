@@ -40,7 +40,7 @@ block content
                                     if item['type'] == 'text'
                                         |  #{item['content']}
                                     else if item['type'] == 'keyword'
-                                        |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reason-title']}", data-content="#{item['reason-content']}") #{item['content']}]
+                                        |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reasonTitle']}", data-content="#{item['reasonContent']}") #{item['content']}]
                                     else if item['type'] == 'at'
                                         a  #{item['content']}
                                     else if item['type'] == 'tag'

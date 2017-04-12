@@ -1,6 +1,5 @@
-
 CREATE TABLE user (
-    userId int(10) NOT NULL AUTO_INCREMENT, 
+    userId int(10) NOT NULL, 
     userName VARCHAR(30) NOT NULL,
     location VARCHAR(100),
     fullName VARCHAR(100),
@@ -57,7 +56,7 @@ CREATE TABLE flag(
 CREATE TABLE tags2tweets (
     tweetId INT NOT NULL,
     tagId int(10) NOT NULL,
-    position INT NOT NULL,
+    indices INT NOT NULL,
     FOREIGN KEY (tweetId)
         REFERENCES tweets(tweetId)
         ON DELETE CASCADE,
@@ -68,8 +67,8 @@ CREATE TABLE tags2tweets (
 
 CREATE TABLE flags2tweets (
     tweetId INT NOT NULL,
-    flatId int(10) NOT NULL,
-    position INT NOT NULL,
+    flagId int(10) NOT NULL,
+    indices INT NOT NULL,
     FOREIGN KEY (tweetId)
         REFERENCES tweets(tweetId)
         ON DELETE CASCADE,
@@ -77,3 +76,15 @@ CREATE TABLE flags2tweets (
         REFERENCES flag(flagId)
         ON DELETE CASCADE
 )
+
+INSERT INTO user(userId,userName) 
+Values(001,"test");
+
+INSERT INTO tweets(userId, tweetText,anonymizedText)
+Values(001,"2012 will destroy the world @123 #123","2012 will destroy the world @*** #***")
+
+INSERT INTO tweets(userId, tweetText,anonymizedText)
+Values(001,"Hello Wolrd @123 #123","Hello Wolrd @*** #***")
+
+INSERT INTO tweets(userId, tweetText,anonymizedText)
+Values(001,"The world hasn't been destroyed !!! @222 #world","The world hasn't been destroyed !!! @*** #***")

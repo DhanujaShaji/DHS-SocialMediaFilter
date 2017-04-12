@@ -15,7 +15,7 @@ router.get('/submit', function(req, res, next) {
 
 /* GET report page. */
 router.get('/report', function(req, res, next) {
-    var account = req.query.Account;
+    var account = req.query.f1-twitter-account;
     if (!!conn && !!conn._socket.readable) {
         conn = conn;
     } else {

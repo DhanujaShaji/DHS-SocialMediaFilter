@@ -9,6 +9,8 @@ var index = require('./routes/index');
 
 var app = express();
 
+var listenPort=8000;
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -42,7 +44,7 @@ app.use(function(err, req, res, next) {
 });
 
 
-
-app.listen(process.env.PORT || 8000);
+console.log("server start at "+listenPort);
+app.listen(process.env.PORT || listenPort);
 
 module.exports = app;
