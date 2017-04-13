@@ -91,7 +91,12 @@ router.get('/portal', function (req, res, next) {
         // TODO: get account list (supervisor only)
 
         // TODO: implement account management
-        res.redirect('portal');
+        res.redirect('addAccounts');
+    } else if (decision == 'logout') {
+        // TODO: logout
+        isLogin = false;
+
+        res.redirect('login');
     } else {
         // TODO: get current user info
         var data = {"name": 'user'};
@@ -100,6 +105,7 @@ router.get('/portal', function (req, res, next) {
     }
 });
 
+/* GET passcode page*/
 router.get('/passcode', function (req, res, next) {
     // TODO: check current login status
     // TODO: check current user role
@@ -415,6 +421,37 @@ router.get('/decision', function(req, res, next) {
     } else {
         res.redirect('submit');
     }
+});
+
+/* GET addAccounts page. */
+router.get('/addAccounts', function(req, res, next) {
+    // TODO: check current login status
+
+    var decision = req.query.action;
+
+    if (isLogin == false) {
+        res.render('error', {
+            title: 'Unauthenticated Access',
+            message: 'Unauthenticated Access to page via direct URL access ',
+            info: 'You must be logged in to perform this action.'
+        });
+    } else if (decision == 'edit') {
+        // TODO: edit account
+    } else if (decision == 'delete') {
+        // TODO: delete account
+    } else if (decision == 'add') {
+        // TODO: add account
+    } else {
+        var accounts = [
+            {'first': 'Javed', 'last': 'Ramjohn', 'role': 'Supervisor'},
+            {'first': 'Alice', 'last': 'Smith', 'role': 'Agent'},
+            {'first': 'Bob', 'last': 'Cook', 'role': 'Agent'}];
+
+        res.render('addAccounts', {
+            title: 'Accounts Management', accounts: accounts
+        });
+    }
+
 });
 
 module.exports = router;
