@@ -77,6 +77,41 @@ CREATE TABLE flags2tweets (
         ON DELETE CASCADE
 )
 
+CREATE TABLE decision (
+    decisionId INT NOT NULL AUTO_INCREMENT,
+    userId int(10) NOT NULL,
+    agentId INT NOT NULL,
+    decision boolean NOT NULL,
+    reason VARCHAR(300),
+    PRIMARY KEY (decisionId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (agentId)
+        REFERENCES Agent(agentId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE Agent (
+    agentId INT NOT NULL AUTO_INCREMENT, 
+    agentName VARCHAR(30) NOT NULL,
+    level INT,
+    approved INT,
+    deniedNum INT,
+    PRIMARY KEY (agentId)
+)
+
+CREATE TABLE report (
+    reportId INT NOT NULL AUTO_INCREMENT, 
+    userId int(10) NOT NULL,
+    tweetsReport VARCHAR(300),
+    followingsReport VARCHAR(300),
+    PRIMARY KEY (reportId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE  
+)
+
 INSERT INTO user(userId,userName) 
 Values(001,"test");
 
