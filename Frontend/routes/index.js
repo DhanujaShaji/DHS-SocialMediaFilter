@@ -265,6 +265,8 @@ router.get('/anonymized', function(req, res, next) {
     var decision = req.query.action;
     var account = req.query.twitter;
 
+    console.log('decision: ' + decision + ' account: ' + account);
+
     // TODO: check twitter account
     var validAccount = true;
 
@@ -282,10 +284,19 @@ router.get('/anonymized', function(req, res, next) {
             'the spelling or search for the account on the Twitter website using ' +
             'either name or email of the registered account before proceeding.'
         });
+    } else if (decision == 'search' && typeof(account) != 'undefined') {
+        // TODO: search keyword
+        var keyword = req.query.keyword;
+
+        res.render('error', {
+            title: 'This function hasn\'t been implemented',
+            message: 'This function hasn\'t been implemented',
+            info: 'Search tweets with keyword \'' + keyword + '\'.'
+        });
     } else if (decision == 'audit' && typeof(account) != 'undefined') {
         // TODO: mockup data, need to replace with the real data from database
         data = [
-            {'type': 'danger', 'date': '2012-12-21', 'comment': '(flagged)', 'content': [
+            {'id': '000', 'type': 'danger', 'date': '2012-12-21', 'comment': '(flagged)', 'content': [
                 {'type': 'text', 'content': 'Cookies are bad I will '},
                 {'type': 'keyword', 'content': 'kill ', 'level': 'danger', 'reason-title': 'Sensitive Type',
                     'reason-content': 'Dangerous Keyword'},
@@ -293,14 +304,14 @@ router.get('/anonymized', function(req, res, next) {
                 {'type': 'at', 'content': '@user'},
                 {'type': 'tag', 'content': '#tag'}
             ]},
-            {'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
+            {'id': '001', 'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
                 {'type': 'text', 'content': 'I had '},
                 {'type': 'keyword', 'content': '***** ', 'level': 'warning', 'reason-title': 'Anonymized Info',
                     'reason-content': 'censors personal info'},
                 {'type': 'at', 'content': '@user'},
                 {'type': 'tag', 'content': '#tag'}
             ]},
-            {'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
+            {'id': '002', 'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
                 {'type': 'text', 'content': 'I like pie. \n'},
                 {'type': 'at', 'content': '@user'},
                 {'type': 'tag', 'content': '#tag'}
@@ -336,6 +347,15 @@ router.get('/original', function(req, res, next) {
             title: 'Unauthenticated Access',
             message: 'Unauthenticated Access to page via direct URL access ',
             info: 'You must be logged in to perform this action.'
+        });
+    } else if (decision == 'search' && typeof(account) != 'undefined') {
+        // TODO: search keyword
+        var keyword = req.query.keyword;
+
+        res.render('error', {
+            title: 'This function hasn\'t been implemented',
+            message: 'This function hasn\'t been implemented',
+            info: 'Search tweets with keyword \'' + keyword + '\'.'
         });
     } else if (!validPasscode) {
         res.render('error', {
@@ -450,6 +470,24 @@ router.get('/addAccounts', function(req, res, next) {
         res.render('addAccounts', {
             title: 'Accounts Management', accounts: accounts
         });
+    }
+
+});
+
+/* GET addCustomFlag page. */
+router.get('/addCustomFlag', function(req, res, next) {
+    // TODO: check current login status
+
+    var tid = req.query.tid;
+
+    if (isLogin == false) {
+        res.render('error', {
+            title: 'Unauthenticated Access',
+            message: 'Unauthenticated Access to page via direct URL access ',
+            info: 'You must be logged in to perform this action.'
+        });
+    } else {
+        // TODO: add custom flag
     }
 
 });
