@@ -1,12 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
+const request = require('request');
+const bcrypt = require('bcrypt');
+const schedule = require('node-schedule');
 var conn = null;
-var GLagentID = 1;
 var SuperAgentLevel = 3;
 const defaultExpiringPeriod=15;
 const defaultIncresePeriod=30;
 const pageLimit=8;
+
+const saltRounds = 10;
+const myPlaintextPassword = 'test';
+
+schedule.scheduleJob('0 * * * * *', function(){
+    console.log('The answer to life, the universe, and everything!');
+});
 
 function dealWithContent(value,indice,context,level) {
     var res=[];
@@ -27,6 +36,19 @@ function dealWithContent(value,indice,context,level) {
     return res;
 }
 
+function storeHashPassword(name,pass) {
+    var storePassword='update Agent set password = ? where account =?';
+    bcrypt.hash(pass, saltRounds, function(err, hash) {
+        conn.query(storePassword,[hash,name],function (err, res) {
+            if(!err){
+                return true;
+            }else {
+                return false;
+            }
+        });
+    });
+}
+
 function authenticate(name, pass, fn) {
     if (!module.parent) {
         console.log('authenticating %s:%s', name, pass);
@@ -36,7 +58,27 @@ function authenticate(name, pass, fn) {
         db.connectDB(conn);
     }
 
-    var authenticateSQL="select agentId,agentName,level from Agent where account = ? && password = ?";
+    var retrievePassword='select agentId,agentName,level,password from Agent where account=?';
+    conn.query(retrievePassword,[name],function (err, res) {
+        if(!err){
+            var hashedPassword=res[0]['password'];
+            var agent = res[0]['agentName'];
+            var agentId = res[0]['agentId'];
+            var agentLevel = res[0]['level'];
+            //console.log("password:"+hashedPassword);
+            bcrypt.compare(myPlaintextPassword, hashedPassword, function(err, res) {
+                if(res===true){
+                    //console.log("hash true");
+                    return fn(agent,agentId,agentLevel);
+                }else {
+                    //console.log("hash false");
+                    return fn(null);
+                }
+            });
+        }
+    });
+
+    /*var authenticateSQL="select agentId,agentName,level from Agent where account = ? && password = ?";
     conn.query(authenticateSQL,[name,pass],function (err,res) {
         if(res!==undefined&&res.length===1){
             var agent = res[0]['agentName'];
@@ -46,7 +88,7 @@ function authenticate(name, pass, fn) {
         } else {
             return fn(null);
         }
-    });
+    });*/
 }
 
 function checkSignIn(req,res,next){
@@ -112,17 +154,6 @@ router.post('/login', function (req, res, next) {
                 });
             }
         });
-       /* if (authenticateResult) {
-            var data = {"name": username};
-            res.redirect('portal');
-        } else {
-            res.render('error', {
-                title: 'Incorrect Username/Password',
-                message: 'Incorrect username/password combination',
-                info: 'The credentials you entered are invalid. If you forgot ' +
-                'your password, please click “Forgot Password” to reset it.'
-            });
-        }*/
     } else if (decision === 'forgetPassword') {
         // TODO: forget password
     } else {
@@ -280,14 +311,14 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             if(result.length!==1){
                 console.log("get more than 1 decision result:" + result);
             }
-            conn.query(addNewDecision,[
-                result[0]['userId'],
-                result[0]['agentId'],
-                result[0]['value'],
-                result[0]['decisionTime'],
-                result[0]['expireTime'],
-            ],function (err, result)
+            var newDecision = result[0]['value'];
+            var decisionTime = new Date();
+            var expireTime = new Date();
+            expireTime.setDate(expireTime.getDate()+defaultExpiringPeriod);
+            conn.query(addNewDecision,[result[0]['userId'], result[0]['agentId'], newDecision, decisionTime, expireTime,],
+                function (err, result)
             {
+
             })
         });
     } else {
@@ -312,7 +343,11 @@ router.get('/submit', checkSignIn, connectToDB, function(req, res, next) {
                 }
             } else {
                 console.log("cannot find users!");
-                res.render('submit', { title: 'Please re-submit Twitter Account' });
+                res.render('error', {
+                    title: 'User not exist',
+                    message: 'We cannot find the user you want to look ',
+                    info: 'Please check the user name and re-submit again'
+                });
             }
         });
     } else if (decision === 'home') {
@@ -329,6 +364,21 @@ router.get('/report', checkSignIn, function(req, res, next) {
     var account = req.query.twitter;
 
     if (decision === 'submit' && typeof(account) !== 'undefined') {
+        const options = {
+            method: 'get',
+            uri:'',
+            json:true,
+            qs:{
+                account:account
+            },
+            timeout:5*1000
+        }
+        request(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var statics = JSON.parse(body);
+                console.log("statics"+statics);
+            }
+        });
         data = [
             {'title': 'Flagged Tweets:', 'content': [
                 {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
