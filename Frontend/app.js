@@ -1,3 +1,7 @@
+/**
+ *
+ * application settings, such as import modules, app level const parameters.
+ */
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -11,7 +15,7 @@ var index = require('./routes/index');
 
 var app = express();
 
-var listenPort=8000;
+var listenPort=8000; // default listen port;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

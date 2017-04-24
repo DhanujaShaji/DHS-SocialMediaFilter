@@ -26,14 +26,14 @@ textarea.form-control {
 	line-height: 30px;
 }
 
-input[type="text"]:focus, 
-textarea:focus, 
-textarea.form-control:focus {
-	outline: 0;
-	background: #fff;
-    border: 1px solid #ccc;
-    -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none;
-}
+/*input[type="text"]:focus, */
+/*textarea:focus, */
+/*textarea.form-control:focus {*/
+	/*outline: 0;*/
+	/*background: #fff;*/
+    /*border: 1px solid #ccc;*/
+    /*-moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none;*/
+/*}*/
 
 input[type="text"]:-moz-placeholder, input[type="password"]:-moz-placeholder, 
 textarea:-moz-placeholder, textarea.form-control:-moz-placeholder { color: #888; }
