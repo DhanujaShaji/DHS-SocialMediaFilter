@@ -831,9 +831,11 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
     }
 });
 
-/* GET addCustomFlag page. */
+/*
+/!* GET addCustomFlag page. *!/
 router.get('/addCustomFlag', checkSignIn, connectToDB, function(req, res, next) {
     // TODO: add custom flag
 });
+*/
 
 module.exports = router;
