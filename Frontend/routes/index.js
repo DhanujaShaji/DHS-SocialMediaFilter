@@ -457,7 +457,7 @@ router.get('/report', checkSignIn, function(req, res, next) {
         account = account.replace(" ", "+");
         const options = {
             method: 'get',
-            uri:'http://128.237.161.160:8080/analysis',
+            uri:'http://35.184.118.200:8080/analysis',
             json:true,
             qs:{
                 userId:account
