@@ -1,5 +1,14 @@
 extends layout
 
+block nav
+    nav(class="navbar navbar-default navbar-fixed-top")
+        div(class="container")
+            form(role='form', class="navbar-form navbar-right", action='/anonymized', method='get')
+                div(class="form-group")
+                    input(type="text", class="form-control", placeholder="Search", name='keyword')
+                input(type='hidden', name='twitter', value=account)
+                button(type="submit", class="btn btn-primary", name='action', value='search') Search
+
 block content
     div(class='row')
         div(class='col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 form-box')
@@ -34,13 +43,17 @@ block content
                     h4 Anonymous Tweets:
                     each tweet in data
                         div(class="panel panel-#{tweet['type']}")
-                            div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
+                            if tweet['comment'] == '(not flagged)'
+                                div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
+                                    a(href='/addCustomFlag?tid='+tweet['id'])  Add Custom Flag
+                            else
+                                div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
                             div(class='panel-body')
                                 each item in tweet['content']
                                     if item['type'] == 'text'
                                         |  #{item['content']}
                                     else if item['type'] == 'keyword'
-                                        |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reason-title']}", data-content="#{item['reason-content']}") #{item['content']}]
+                                        |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reasonTitle']}", data-content="#{item['reasonContent']}") #{item['content']}]
                                     else if item['type'] == 'at'
                                         a  #{item['content']}
                                     else if item['type'] == 'tag'

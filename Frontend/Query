@@ -1,0 +1,150 @@
+CREATE TABLE user (
+    userId int(10) NOT NULL, 
+    userName VARCHAR(30) NOT NULL,
+    location VARCHAR(100),
+    fullName VARCHAR(100),
+    PRIMARY KEY (userId)
+)ENGINE=INNODB;
+
+CREATE TABLE tags (
+    tagId int(10) NOT NULL AUTO_INCREMENT, 
+    tagText VARCHAR(100), 
+    PRIMARY KEY(tagId)
+)ENGINE=INNODB;
+
+CREATE TABLE tweets (
+    tweetId INT NOT NULL AUTO_INCREMENT,
+    userId INT(10),
+    tweetText VARCHAR(300),
+    anonymizedText VARCHAR(300),
+    postLocation VARCHAR(100),
+    postTime DATETIME,
+    PRIMARY KEY (tweetID),
+    INDEX par_ind (userId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE follow (
+    id int(10) NOT NULL AUTO_INCREMENT,
+    userId int(10) NOT NULL,
+    followerId int(10) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (followerId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+) ENGINE=INNODB AUTO_INCREMENT=1;
+
+CREATE TABLE blacklist (
+    userId int(10) NOT NULL,
+    userName VARCHAR(30) NOT NULL,
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE flag(
+    flagId int(10) NOT NULL AUTO_INCREMENT,
+    flagContext VARCHAR(100) NOT NULL,
+    PRIMARY KEY (flagId)
+)
+
+CREATE TABLE tags2tweets (
+    tweetId INT NOT NULL,
+    tagId int(10) NOT NULL,
+    indices INT NOT NULL,
+    FOREIGN KEY (tweetId)
+        REFERENCES tweets(tweetId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (tagId)
+        REFERENCES tags(tagId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE flags2tweets (
+    tweetId INT NOT NULL,
+    flagId int(10) NOT NULL,
+    indices INT NOT NULL,
+    FOREIGN KEY (tweetId)
+        REFERENCES tweets(tweetId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (flagId)
+        REFERENCES flag(flagId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE decision (
+    decisionId INT NOT NULL AUTO_INCREMENT,
+    userId int(10) NOT NULL,
+    agentId INT NOT NULL,
+    decision boolean NOT NULL,
+    reason VARCHAR(300),
+    PRIMARY KEY (decisionId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (agentId)
+        REFERENCES Agent(agentId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE decisionChangeLog (
+    logId INT NOT NULL AUTO_INCREMENT,
+    oriDecisionId INT NOT NULL,
+    newDecisionId INT NOT NULL,
+    PRIMARY KEY (logId),
+    FOREIGN KEY (oriDecisionId)
+        REFERENCES decision(decisionId)
+        ON DELETE CASCADE,
+    FOREIGN KEY (newDecisionId)
+        REFERENCES decision(decisionId)
+        ON DELETE CASCADE
+)
+
+CREATE TABLE Agent (
+    agentId INT NOT NULL AUTO_INCREMENT, 
+    agentName VARCHAR(30) NOT NULL,
+    account VARCHAR(30) NOT NULL,
+    passcode VARCHAR(30) NOT NULL,
+    level INT,
+    approved INT,
+    deniedNum INT,
+    PRIMARY KEY (agentId)
+)
+
+CREATE TABLE report (
+    reportId INT NOT NULL AUTO_INCREMENT, 
+    userId int(10) NOT NULL,
+    tweetsReport VARCHAR(300),
+    followingsReport VARCHAR(300),
+    PRIMARY KEY (reportId),
+    FOREIGN KEY (userId)
+        REFERENCES user(userId)
+        ON DELETE CASCADE  
+)
+
+CREATE TABLE passcode (
+    passcodeId INT NOT NULL AUTO_INCREMENT, 
+    passcode VARCHAR(100) NOT NULL,
+    PRIMARY KEY (passcodeId)
+)
+
+INSERT INTO user(userId,userName) 
+Values(001,"test");
+
+INSERT INTO tweets(userId, tweetText,anonymizedText)
+Values(001,"2012 will destroy the world @123 #123","2012 will destroy the world @*** #***")
+
+INSERT INTO tweets(userId, tweetText,anonymizedText)
+Values(001,"Hello Wolrd @123 #123","Hello Wolrd @*** #***")
+
+INSERT INTO tweets(userId, tweetText,anonymizedText)
+Values(001,"The world hasn't been destroyed !!! @222 #world","The world hasn't been destroyed !!! @*** #***")
+select decisionId, decisionTime, userName, agentName from decision, user, Agent where decision.userId = user.userId && decision.agentId = Agent.agentId
+
+select fullname, userName, agentName, decTable.decision from decision as decTable, user, Agent
+where decTable.decisionId = 1 && decTable.userId = user.userId && decTable.agentId = Agent.agentId

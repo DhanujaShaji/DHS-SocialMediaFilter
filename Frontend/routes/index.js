@@ -1,398 +1,703 @@
-var express = require('express');
-var router = express.Router();
-var db = require('../db.js');
+const express = require('express');
+const router = express.Router();
+const db = require('../db.js');
+const request = require('request');
+const bcrypt = require('bcrypt');
+const schedule = require('node-schedule');
 var conn = null;
+var SupervisorLevel = 3; //Supervisor level
+const defaultExpiringPeriod=15; //15 days, expireation time for a decision.
+const defaultIncresePeriod=30; //30 days, increase time for a decision when choose to increase the expire time.
+const pageLimit=8; //limitation for number of tweets to be displayed on each page.
+const saltRounds = 10; // the number of rounds to be hashed.
+const timeSetting='0 0 5 * * *' //5:00 AM of each day.
+const testTimeSetting='0 * * * * *'; //0s of each miniue.
+const debug=false;
 
-// TODO: implement your login system
-var isLogin = false;
 
-// TODO: implement your passcode generate system
-var generatedPasscodes = [];
-
-/* GET default page. */
-router.get('/', function(req, res, next) {
-    // TODO: check current login status
-
-    if (isLogin) {
-        res.redirect('portal')
-    } else {
-        res.redirect('login');
+/**
+ * sheduled job for delete data which exceeds the expiretime in database.
+ * timeSetting indicates when to execute those commands;
+ */
+schedule.scheduleJob(testTimeSetting, function(){
+    if(debug){
+        if (!conn || !conn._socket.readable) {
+            conn = db.getConnection(db.client, db.settings);
+            db.connectDB(conn);
+        }
+        const deleteTweetsSQL='delete from tweets';
+        const deleteUserSQL='delete from user where userId = ?';
+        const getExpireDicisionSQL='select decisionId,userId from decision where expireTime >= ?'
+        const deleteDecisionSQL='delete from decision where decisionId = ?';
+        conn.query(deleteTweetsSQL,function (err, result){});
+        conn.query(getExpireDicisionSQL,[],function (err, result) {
+            if(err){
+                console.log(err);
+                return;
+            }
+            for(var index in result){
+                var decisionId = result[index]['decisionId'];
+                var userId = result[index]['userId'];
+                conn.query(deleteDecisionSQL,[decisionId],function (err, result){});
+                conn.query(deleteUserSQL,[userId],function (err, result){});
+            }
+        })
     }
+    console.log('The answer to life, the universe, and everything!');
 });
 
-/* GET login page. */
-router.get('/login', function (req, res, next) {
-    // TODO: check current login status
-
-    if (isLogin) {
-        res.redirect('portal')
-    } else {
-        res.render('login', {title: 'Login Agent Account'});
+/**
+ *
+ * @param value
+ * @param indice
+ * @param context
+ * @param level
+ * @returns {Array}
+ *
+ * construct the data structure needed by frontend. The data structure here is the one page
+ * of tweets;
+ */
+function dealWithContent(value,indice,context,level) {
+    var res=[];
+    if(typeof (value) ===　'string'){
+        var str1 = value.slice(0,indice);
     }
-});
+    res.push({type:"text", content: str1});
+    res.push({type:"keyword",
+        content:context,
+        level:level,
+        reasonTitle:"Sensitive Type",
+        reasonContent:"Dangerous Keyword"});
+    var length=context.length;
+    if(typeof (value) ===　'string' ){
+        var str2 = value.slice(indice+length);
+    }
+    res.push({type:"text", content: str2});
+    return res;
+}
 
-/* POST login page. */
-router.post('/login', function (req, res, next) {
-    // TODO: check current login status
+/**
+ *
+ * @param name //username
+ * @param pass //password
+ * @param fn //function object
+ *
+ * authenticate the user
+ */
+function authenticate(name, pass, fn) {
+    if (!module.parent) {
+        console.log('authenticating %s:%s', name, pass);
+    }
+    if (!conn || !conn._socket.readable) {
+        conn = db.getConnection(db.client, db.settings);
+        db.connectDB(conn);
+    }
 
-    var decision = req.body.action;
-
-    if (isLogin) {
-        res.redirect('portal');
-    } else if (decision == 'login') {
-        var username = req.body.username;
-        var psd = req.body.psd;
-
-        // TODO: authentication
-        var authenticateResult = true;
-        isLogin = true;
-
-        if (authenticateResult) {
-            // TODO: get current user info
-            var data = {"name": username};
-
-            res.redirect('portal');
-        } else {
-            res.render('error', {
-                title: 'Incorrect Username/Password',
-                message: 'Incorrect username/password combination',
-                info: 'The credentials you entered are invalid. If you forgot ' +
-                'your password, please click “Forgot Password” to reset it.'
+    var retrievePassword='select agentId,agentName,level,password from Agent where account=?';
+    conn.query(retrievePassword,[name],function (err, res) {
+        if(!err){
+            var hashedPassword=res[0]['password'];
+            var agent = res[0]['agentName'];
+            var agentId = res[0]['agentId'];
+            var agentLevel = res[0]['level'];
+            //console.log("password:"+hashedPassword);
+            bcrypt.compare(pass, hashedPassword, function(err, res) {
+                if(res===true){
+                    //console.log("hash true");
+                    return fn(agent,agentId,agentLevel);
+                }else {
+                    //console.log("hash false");
+                    return fn(null);
+                }
             });
         }
-    } else if (decision == 'forgetPassword') {
-        // TODO: forget password
+    });
+
+    /*var authenticateSQL="select agentId,agentName,level from Agent where account = ? && password = ?";
+    conn.query(authenticateSQL,[name,pass],function (err,res) {
+        if(res!==undefined&&res.length===1){
+            var agent = res[0]['agentName'];
+            var agentId = res[0]['agentId'];
+            var agentLevel = res[0]['level'];
+            return fn(agent,agentId,agentLevel);
+        } else {
+            return fn(null);
+        }
+    });*/
+}
+
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ *
+ * check whether a user has sign in or not
+ */
+function checkSignIn(req,res,next){
+    if (req.session.agentName) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
+
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ *
+ * connect to database if not.
+ */
+function connectToDB(req,res,next) {
+    if (!conn || !conn._socket.readable) {
+        conn = db.getConnection(db.client, db.settings);
+        db.connectDB(conn);
+    }
+    next();
+}
+
+/**
+ *
+ * @param res
+ * @param err
+ *
+ * if there is an error, return error page.
+ */
+function dealwithInternalError(res,err) {
+    if(err){
+        res.render('error',{
+            title: 'Internal error',
+            message: 'Internal error',
+            info: 'An internal error happend! Sorry for this.'
+        });
+    }
+}
+
+
+/**
+ * GET default page.
+ */
+router.get('/', checkSignIn, function(req, res, next) {
+    res.render('login', {title: 'Login Agent Account'});
+});
+
+/**
+ *  GET login page.
+ */
+router.get('/login', function (req, res, next) {
+    res.render('login', {title: 'Login Agent Account'});
+});
+
+/**
+ * Get logout out page
+ * the session used to identify the user will be destroyed here.
+ */
+router.get('/logout', function(req, res){
+    // destroy the user's session to log them out
+    // will be re-created next request
+    req.session.destroy(function(){
+        res.redirect('/login');
+    });
+});
+
+/**
+ * POST login page.
+ * this router is used for login process.
+ */
+router.post('/login', function (req, res, next) {
+    var action = req.body.action;
+    if (action === 'login') {
+        var agentName = req.body.username;
+        var psd = req.body.psd;
+
+        authenticate(agentName, psd, function(agentName,agentId,level){
+            if (agentName) {
+                // Regenerate session when signing in
+                // to prevent fixation
+                req.session.regenerate(function(){
+                    // Store the user's info
+                    // in the session store to be retrieved.
+                    req.session.agentName = agentName;
+                    req.session.agentId = agentId;
+                    req.session.level = level;
+                    res.redirect('portal');
+                });
+            } else {
+                res.render('error', {
+                    title: 'Incorrect Username/Password',
+                    message: 'Incorrect username/password combination',
+                    info: 'The credentials you entered are invalid. If you forgot ' +
+                    'your password, please click “Forgot Password” to reset it.'
+                });
+            }
+        });
+    } else if (action === 'forgetPassword') {
+        res.render(error,{
+            title: 'Unimplemented function',
+            message: 'This function hasn\'t been implemented',
+            info: 'This function hasn\'t been implemented'
+        })
     } else {
         res.redirect('login');
     }
 });
 
-/* GET portal page*/
-router.get('/portal', function (req, res, next) {
-    // TODO: check current login status
-
-    var decision = req.query.action;
-
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (decision == "audit") {
+/**
+ * GET portal page, where you choose which function you want to do, reveiew past decision, genetate new passcode,
+ * manage accounts etc.
+ */
+router.get('/portal',checkSignIn, function (req, res, next) {
+    var action = req.query.action;
+    if (action === "audit") {
         res.redirect('submit');
-    } else if (decision == "review") {
+    } else if (action === "review") {
         res.redirect('review');
-    } else if (decision == 'passcode') {
-        // TODO: generate passcode (supervisor only)
+    } else if (action === 'passcode') {
 
         res.redirect('passcode');
-    } else if (decision == 'account') {
-        // TODO: get account list (supervisor only)
-
-        // TODO: implement account management
-        res.redirect('portal');
+    } else if (action === 'account') {
+        res.redirect('addAccounts');
+    } else if (action == 'logout') {
+        res.redirect('logout');
     } else {
-        // TODO: get current user info
         var data = {"name": 'user'};
-
         res.render('portal', {title: 'Welcome ' + 'user', data: data});
     }
 });
 
-router.get('/passcode', function (req, res, next) {
-    // TODO: check current login status
-    // TODO: check current user role
+/**
+ * get passcode page where you can generate new passcode.
+ */
+router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
     var hasPermission = true;
+    var action = req.query.action;
+    var agentLevel = req.session.level;
+    var generatedPasscodes = [];
 
-    var decision = req.query.action;
-
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (hasPermission == false) {
+    //only supervisor can access this page.
+    if (agentLevel !== SupervisorLevel) {
         res.render('error', {
             title: 'Unauthenticated Access',
             message: 'Unauthenticated Access to page via direct URL access ',
             info: 'You do not have permission to view this page.'
         });
-    } else if (decision == 'generate') {
-        // TODO: store new passcode into database
+    }
+
+    if (action === 'generate') {
+        //generate new passcode
         var code = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 30);
+
         generatedPasscodes.push({'code': code, 'valid': 'valid'});
+        var valid=1;
+        const sql='insert into passcode(passcode,valid) value(?,?)';
+        const changeValidSQL= 'update passcode set valid = 0 where valid =1';
+
+        conn.query(changeValidSQL,function (err, result) {
+            console.log("change passcode successfully!");
+            conn.query(sql,[code,valid], function (err,result) {
+                console.log("passcode store successfully");
+            });
+        })
 
         var data = {'passcode': code, 'generatedPasscodes': generatedPasscodes};
-
         res.render('passcode', { title: 'Passcode' , data: data });
-    } else if (decision == 'home') {
+
+    } else if (action === 'home') {
         res.redirect('portal');
     } else {
-        // TODO: get generated passcode from database
-        data = {'passcode': 'passcode placeholder...', 'generatedPasscodes': generatedPasscodes};
-
-        res.render('passcode', { title: 'Passcode' , data: data });
+        //get past valide passcode.
+        const getPasscodeSQL = 'select passcode from passcode where valid = 1';
+        conn.query(getPasscodeSQL,function (err, result) {
+            if(result.length!==1){
+                console.log("get passcode err!");
+            }
+            console.log("retrieved passcode:"+result[0]['passcode']);
+            generatedPasscodes.push({'code': result[0]['passcode'], 'valid': 'valid'});
+            data = {'passcode': 'passcode placeholder...', 'generatedPasscodes': generatedPasscodes};
+            res.render('passcode', { title: 'Passcode' , data: data });
+        })
     }
 });
 
-/* GET review page */
-router.get('/review', function (req, res, next) {
-    // TODO: check current login status
+/**
+ * GET review page where you review historical decision about a user.
+ */
+router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
+    var action = req.query.action;
 
-    var decision = req.query.action;
-
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (decision == 'home') {
+    if (action === 'home') {
         res.redirect('portal');
     } else {
-        // TODO: add previous decisions to data
-        var previousDecisions = [
-            {'id': '1', 'date': '12/12/2017', 'twitter': 'Cookie_lover', 'agent': 'Darth Vader'},
-            {'id': '2', 'date': '12/11/2017', 'twitter': 'Privacy_lover', 'agent': 'XXX'}
-        ];
-
-        res.render('review', {title: 'Review Previous Decision', 'previousDecisions': previousDecisions});
+        const previousDecisionsSQL="select decisionId, decisionTime, userName, agentName " +
+            "from decision, user, Agent where decision.userId = user.userId &&" +
+            " decision.agentId = Agent.agentId";
+        conn.query(previousDecisionsSQL,function (err, result) {
+            if(result.length!==0){
+                var previousDecisions = [];
+                for(var index in result){
+                    if(index>pageLimit){
+                        break;
+                    }
+                    previousDecisions.push({
+                        'id': result[index]['decisionId'],
+                        'date': result[index]['decisionTime'].toLocaleDateString(),
+                        'twitter': result[index]['userName'],
+                        'agent': result[index]['agentName']
+                    })
+                }
+                res.render('review', {title: 'Review Previous Decision', 'previousDecisions': previousDecisions});
+            }else{
+                console.log("review error: result length is 0");
+            }
+        });
     }
 });
 
-/* GET detail page */
-router.get('/detail', function (req, res, next) {
-    // TODO: check current login status
+/**
+ * GET detail decision page where you can get detail information of a typical decision and make your new decision.
+ */
+router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
+    var action = req.query.action;
+    var decisionId = req.query.id; //cannot get decision Id from front end;
 
-    var decision = req.query.action;
-
-    var id = req.query.id;
-
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (decision == 'review' && typeof(id) != 'undefined') {
-        // TODO: send decision detail info
+    if (action === 'review' && typeof(decisionId) !== 'undefined') {
         var decisionData = {};
-
-        res.render('detail', {title: 'Decision Detail', data: decisionData});
-    } else if (decision == 'increase' && typeof(id) != 'undefined') {
-        // TODO: Increase Retention by 1 Month
-    } else if (decision == 'changeDecision' && typeof(id) != 'undefined') {
-        // TODO: Change Decision
+        const getDecisionSQL='select fullName, userName, agentName, value ' +
+            'from decision, user, Agent where decision.decisionId = ? && decision.userId = user.userId &&' +
+            'decision.agentId = Agent.agentId';
+        conn.query(getDecisionSQL, [decisionId], function (err, result) {
+            if(err){
+                console.log(err);
+            }
+            if(result===undefined || result.length!==1){
+                console.log("get decision detail err!");
+            }
+            res.render('detail', {title: 'Decision Detail', data: decisionData});
+        });
+    } else if (action === 'increase' && typeof(decisionId) !== 'undefined') {
+        console.log("detail action increase:"+decisionId);
+        const increseRetentionSQL='update decision set expireTime = ? where decisionId = ?';
+        const getRetentionSQL='select expireTime from decision where decisionId = ?';
+        conn.query(getRetentionSQL,[decisionId],function (err, result) {
+            if(result.length!==1){
+                console.log("get retention time err!");
+            }
+            var expireTime = result[0]['expireTime'];
+            var increasedTime = new Date();
+            increasedTime.setDate(expireTime.getDate()+defaultIncresePeriod);
+            conn.query(increseRetentionSQL, [increasedTime, decisionId], function (err, result) {
+                console.log("increase retention success!");
+                res.redirect('portal');
+            });
+        });
+    } else if (action === 'changeDecision' && typeof(decisionId) !== 'undefined') {
+        const changeOriDecision='update decision set valid = 0 where decisionId = ? && valid = 1';
+        const getDecision='select * from decision where decisionId = ? && valid = 1';
+        const addNewDecision="insert into decision(decisionId, userId,agentId,value,decisionTime,expireTime) values(?,?,?,?,?,?)";
+        const addLog='insert into decisionChangeLog(oriDecisionId , newDecisionId ) values(?,?)';
+        conn.query(changeOriDecision,[decisionId],function (err, result) {
+            if(result.length!==1){
+                console.log("change decision result:" + result);
+            }
+        });
+        conn.query(getDecision, [decisionId], function (err, result) {
+            if(result.length!==1){
+                console.log("get more than 1 decision result:" + result);
+            }
+            var newDecisionId = decisionId + 1000;
+            var newDecision = !result[0]['value'];
+            var decisionTime = new Date();
+            var expireTime = new Date();
+            expireTime.setDate(expireTime.getDate()+defaultExpiringPeriod);
+            conn.query(addNewDecision,[newDecisionId,result[0]['userId'], result[0]['agentId'], newDecision, decisionTime, expireTime],
+                function (err, result)
+            {
+                dealwithInternalError(err,res);
+                conn.query(addLog,[decisionId, newDecisionId],function (err, res) {
+                    dealwithInternalError(err,res);
+                    res.redirect('portal');
+                })
+            })
+        });
     } else {
         res.redirect('review');
     }
 });
 
-/* GET submit page. */
-router.get('/submit', function(req, res, next) {
-    // TODO: check current login status
+/**
+ * GET submit page. submit userId(twitter) you want to search.
+ */
+router.get('/submit', checkSignIn, connectToDB, function(req, res, next) {
 
-    var decision = req.query.action;
+    var action = req.query.action;
     var account = req.query.twitter;
-
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (decision == 'submit') {
+    if (action === 'submit') {
+        account = account.replace(" ", "+");
+        console.log("account is:",account);
         res.redirect('report?action=submit&twitter=' + account);
-    } else if (decision == 'home') {
+    } else if (action === 'home') {
         res.redirect('portal');
     } else {
         res.render('submit', { title: 'Submit Twitter Handle'});
     }
 });
 
-/* GET report page. */
-router.get('/report', function(req, res, next) {
-    // TODO: check current login status
 
-    var decision = req.query.action;
+/**
+ * GET report page. get stastical report about a userId(twitter)
+ */
+router.get('/report', checkSignIn, function(req, res, next) {
+
+    var action = req.query.action;
     var account = req.query.twitter;
 
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (decision == 'submit' && typeof(account) != 'undefined') {
-        // TODO: mockup data, need to replace with the real data from database
-        data = [
-            {'title': 'Flagged Tweets:', 'content': [
-                {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
-                {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
-            ]},
-            {'title': 'Blacklisted Entities Following:', 'content': [
-                {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
-                {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
-            ]},
-            {'title': 'Other Statistic Report:', 'content': [
-                {'type': 'paragraph', 'content': '......'}
-            ]}];
+    if (action === 'submit' && typeof(account) !== 'undefined') {
+        account = account.replace(" ", "+");
+        const options = {
+            method: 'get',
+            uri:'http://128.237.161.160:8080/analysis',
+            json:true,
+            qs:{
+                userId:account
+            },
+            timeout:10*1000
+        }
+        console.log(options.uri);
 
-        res.render('report', { title: 'Statistic Report', data: data, account: account  });
-    } else if (decision == 'no' && typeof(account) != 'undefined') {
+        request(options, function (error, response, body) {
+            if (error || response.statusCode == 200) {
+                console.log(error);
+            }
+
+            var sql = "select userId from user where userName = '" + account + "'";
+            conn.query(sql,function (err, result) {
+                if (result.length === 1) {
+                    req.session.userId = result[0].userId;
+                    console.log("userId:", result[0].userId);
+                    data = [
+                        {'title': 'Flagged Tweets:', 'content': [
+                            {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
+                            {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
+                        ]},
+                        {'title': 'Blacklisted Entities Following:', 'content': [
+                            {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
+                            {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
+                        ]},
+                        {'title': 'Other Statistic Report:', 'content': [
+                            {'type': 'paragraph', 'content': '......'}
+                        ]}];
+                    res.render('report', { title: 'Statistic Report', data: data, account: account  });
+                } else {
+                    console.log("cannot find users!");
+                    res.render('error', {
+                        title: 'User not exist',
+                        message: 'We cannot find the user you want to look ',
+                        info: 'Please check the user name and re-submit again'
+                    });
+                }
+            });
+        });
+    } else if (action === 'no' && typeof(account) !== 'undefined') {
         res.redirect('anonymized?action=audit&twitter=' + account);
-    } else if (decision == 'yes' && typeof(account) != 'undefined') {
+    } else if (action === 'yes' && typeof(account) !== 'undefined') {
         res.redirect('decision?action=submit&twitter=' + account);
-    } else if (decision == 'home') {
+    } else if (action === 'home') {
         res.redirect('portal');
     } else {
         res.redirect('submit');
     }
 });
 
-/* GET anonymized page. */
-router.get('/anonymized', function(req, res, next) {
-    // TODO: check current login status
-
-    var decision = req.query.action;
+/**
+ * GET anonymized tweets page. display detail information about his/her anonymized tweets
+ */
+router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
+    var action = req.query.action;
     var account = req.query.twitter;
+    var userId = req.session.userId;
 
-    // TODO: check twitter account
-    var validAccount = true;
+   if (action === 'audit' && typeof(userId) !== 'undefined') {
+        var dataSQL= "select tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
+            "flags2tweets.degree, flag.flagContext " +
+            "from tweets left join flags2tweets on (tweets.tweetId = flags2tweets.tweetId) " +
+            "left join flag on (flags2tweets.flagId = flag.flagId) " +
+            "where userId = ?;";
+        conn.query(dataSQL, [userId],function(err, result) {
+            var data=[];
+            //console.log("result is:",result);
+            for(var index in result){
+                if(index>pageLimit){
+                    break;
+                }
+                var degreeType;
+                var comment;
+                if(result[index].degree !== null){
+                    switch(result[index].degree) {
+                        case 1: degreeType = 'danger';comment='(flagged)';break;
+                        case 2: degreeType = 'warning';comment='(uncertain)';break;
+                    }
+                    var content=dealWithContent(result[index].anonymizedText,
+                        result[index].indices,
+                        result[index].flagContext,
+                        degreeType
+                    );
+                    data.push({
+                        type: degreeType,
+                        date: result[index].postTime.toLocaleDateString(),
+                        comment: comment,
+                        content: content
+                    });
+                } else {
+                    data.push({
+                        type: 'success',
+                        date: result[index].postTime.toLocaleDateString(),
+                        comment: '(not flagged)',
+                        content: [{type:"text",content:result[index].anonymizedText}]
+                    });
+                }
 
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
+            }
+            res.render('anonymized', { title: 'Anonymized Twitter Data', data: data, account: account });
         });
-    } else if (!validAccount) {
+    } else if (action == 'search' && typeof(account) != 'undefined') {
+        var keyword = req.query.keyword;
         res.render('error', {
-            title: 'Twitter handle not found',
-            message: 'Twitter handle not found',
-            info: 'The Twitter handle entered could not be found. Please verify ' +
-            'the spelling or search for the account on the Twitter website using ' +
-            'either name or email of the registered account before proceeding.'
+            title: 'This function hasn\'t been implemented',
+            message: 'This function hasn\'t been implemented',
+            info: 'Search tweets with keyword \'' + keyword + '\'.'
         });
-    } else if (decision == 'audit' && typeof(account) != 'undefined') {
-        // TODO: mockup data, need to replace with the real data from database
-        data = [
-            {'type': 'danger', 'date': '2012-12-21', 'comment': '(flagged)', 'content': [
-                {'type': 'text', 'content': 'Cookies are bad I will '},
-                {'type': 'keyword', 'content': 'kill ', 'level': 'danger', 'reason-title': 'Sensitive Type',
-                    'reason-content': 'Dangerous Keyword'},
-                {'type': 'text', 'content': 'them. '},
-                {'type': 'at', 'content': '@user'},
-                {'type': 'tag', 'content': '#tag'}
-            ]},
-            {'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
-                {'type': 'text', 'content': 'I had '},
-                {'type': 'keyword', 'content': '***** ', 'level': 'warning', 'reason-title': 'Anonymized Info',
-                    'reason-content': 'censors personal info'},
-                {'type': 'at', 'content': '@user'},
-                {'type': 'tag', 'content': '#tag'}
-            ]},
-            {'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
-                {'type': 'text', 'content': 'I like pie. \n'},
-                {'type': 'at', 'content': '@user'},
-                {'type': 'tag', 'content': '#tag'}
-            ]}
-        ];
-
-        res.render('anonymized', { title: 'Anonymized Twitter Data', data: data, account: account });
-    } else if (decision == 'no' && typeof(account) != 'undefined') {
+    } else if (action === 'no' && typeof(account) !== 'undefined') {
         var passcode = req.query.passcode;
         res.redirect('original?action=audit&passcode=' + passcode + '&twitter=' + account);
-    } else if (decision == 'yes' && typeof(account) != 'undefined') {
+    } else if (action === 'yes' && typeof(account) !== 'undefined') {
         res.redirect('decision?action=submit&twitter=' + account);
-    } else if (decision == 'home') {
+    } else if (action === 'home') {
         res.redirect('portal');
     } else {
         res.redirect('submit');
     }
 });
 
-/* GET original page. */
-router.get('/original', function(req, res, next) {
-    // TODO: check current login status
+/**
+ * GET original tweets page. display detail information about his/her original tweets.
+ * It can only be accessed by agent with right passcode.
+ */
+router.get('/original', checkSignIn, connectToDB, function(req, res, next) {
 
-    var decision = req.query.action;
+    var action = req.query.action;
     var account = req.query.twitter;
-
-    // TODO: check passcode
     var passcode = req.query.passcode;
-    var validPasscode = true;
+    var userId = req.session.userId;
 
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (!validPasscode) {
-        res.render('error', {
-            title: 'Incorrect Passcode',
-            message: 'Incorrect Passcode Entry ',
-            info: 'The passcode entered is not valid.'
-        });
-    } else if (decision == 'audit' && typeof(account) != 'undefined') {
-        // TODO: mockup data, need to replace with the real data from database
-        data = [
-            {'type': 'danger', 'date': '2012-12-21', 'comment': '(flagged)', 'content': [
-                {'type': 'text', 'content': 'Cookies are bad I will '},
-                {'type': 'keyword', 'content': 'kill ', 'level': 'danger', 'reason-title': 'Sensitive Type',
-                    'reason-content': 'Dangerous Keyword'},
-                {'type': 'text', 'content': 'them. '},
-                {'type': 'at', 'content': '@user'},
-                {'type': 'tag', 'content': '#tag'}
-            ]},
-            {'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
-                {'type': 'text', 'content': 'I had '},
-                {'type': 'keyword', 'content': 'personal info ', 'level': 'warning', 'reason-title': 'Anonymized Info',
-                    'reason-content': 'censors personal info'},
-                {'type': 'at', 'content': '@user'},
-                {'type': 'tag', 'content': '#tag'}
-            ]},
-            {'type': 'success', 'date': '2012-12-22', 'comment': '(not flagged)', 'content': [
-                {'type': 'text', 'content': 'I like pie. \n'},
-                {'type': 'at', 'content': '@user'},
-                {'type': 'tag', 'content': '#tag'}
-            ]}
-            ];
-
-        res.render('original', { title: 'Original Tweets', data: data, account: account });
-    } else if (decision == 'submit' && typeof(account) != 'undefined') {
-        res.redirect('decision?action=submit&twitter=' + account);
-    } else if (decision == 'home') {
-        res.redirect('portal');
-    } else {
+    if(userId === undefined){
         res.redirect('submit');
     }
+
+    if (action == 'search' && typeof(account) != 'undefined') {
+        var keyword = req.query.keyword;
+        res.render('error', {
+            title: 'This function hasn\'t been implemented',
+            message: 'This function hasn\'t been implemented',
+            info: 'Search tweets with keyword \'' + keyword + '\'.'
+        });
+    }
+
+    const passCodeSQL="select * from passcode where passcode = ? && valid = 1";
+    conn.query(passCodeSQL,[passcode],function (err,result) {
+        console.log("original result length:"+result.length);
+        if (result!==undefined&&result.length === 1) {
+            if (action === 'audit' && typeof(account) !== 'undefined') {
+                var dataSQL= "select tweets.tweetText, tweets.postTime, flags2tweets.indices, " +
+                    "flags2tweets.degree, flag.flagContext " +
+                    "from tweets left join flags2tweets on (tweets.tweetId = flags2tweets.tweetId) " +
+                    "left join flag on (flags2tweets.flagId = flag.flagId) " +
+                    "where userId = ?;";
+                conn.query(dataSQL, [userId],function(err, result) {
+                    var data=[];
+                    for(var index in result){
+                        if(index>pageLimit){
+                            break;
+                        }
+                        var degreeType;
+                        var comment;
+                        if(result[index].degree !== null){
+                            switch(result[index].degree) {
+                                case 1: degreeType = 'danger';comment='(flagged)';break;
+                                case 2: degreeType = 'warning';comment='(uncertain)';break;
+                            }
+                            var content=dealWithContent(result[index].tweetText,
+                                result[index].indices,
+                                result[index].flagContext,
+                                degreeType
+                            );
+                            data.push({
+                                type: degreeType,
+                                date: result[index].postTime.toLocaleDateString(),
+                                comment: comment,
+                                content: content
+                            });
+                        } else {
+                            data.push({
+                                type: 'success',
+                                date: result[index].postTime.toLocaleDateString(),
+                                comment: '(not flagged)',
+                                content: [{type:"text",content:result[index].tweetText}]
+                            });
+                        }
+                    }
+                    res.render('original', { title: 'Original Tweets', data: data, account: account });
+                });
+            } else if (action === 'submit' && typeof(account) !== 'undefined') {
+                res.redirect('decision?action=submit&twitter=' + account);
+            } else if (action === 'home') {
+                res.redirect('portal');
+            } else {
+                res.redirect('submit');
+            }
+        }else {
+            res.render('error', {
+                title: 'Incorrect Passcode',
+                message: 'Incorrect Passcode Entry ',
+                info: 'The passcode entered is not valid.'
+            });
+        }
+    })
 });
 
-/* GET decision page. */
-router.get('/decision', function(req, res, next) {
-    // TODO: check current login status
+/**
+ * GET making decision page where agent make their decision about a userId(twitter).
+ */
+router.get('/decision', checkSignIn, connectToDB, function(req, res, next) {
 
-    var decision = req.query.action;
+    var action = req.query.action;
     var account = req.query.twitter;
 
-    if (isLogin == false) {
-        res.render('error', {
-            title: 'Unauthenticated Access',
-            message: 'Unauthenticated Access to page via direct URL access ',
-            info: 'You must be logged in to perform this action.'
-        });
-    } else if (decision == 'submit' && typeof(account) != 'undefined') {
-        // TODO: add some info to make a decision
+    var userId=req.session.userId;
+    if(userId === undefined){
+        res.redirect('submit');
+    }
+    var agentId=req.session.agentId;
+    if(userId === undefined){
+        res.redirect('login');
+    }
+    var decisionTime = new Date();
+    var expireTime = new Date();
+    expireTime.setDate(expireTime.getDate()+defaultExpiringPeriod);
+
+    var sql="insert into decision(userId,agentId,value,decisionTime,expireTime) values(?,?,?,?,?)";
+    if (action === 'submit' && typeof(account) !== 'undefined') {
         data = [];
-
         res.render('decision', { title: 'Make a Decision', account: account });
-    } else if (decision == 'yes' && typeof(account) != 'undefined') {
-        // TODO: make decision
-
+    } else if (action === 'yes' && typeof(account) !== 'undefined') {
+        var pass = 1;
+        conn.query(sql,[userId,agentId,pass,decisionTime,expireTime],function (err,result) {
+            if(err){
+                console.log(err);
+            }
+            console.log("decision pass:"+result);
+        })
         res.render('error', {
             title: 'Decision Confirmation',
             message: 'Passenger ' + account + " Pass the Audit",
@@ -400,9 +705,14 @@ router.get('/decision', function(req, res, next) {
             'Account raises no concerns regarding this traveler’s entry ' +
             'into the United States.'
         });
-    } else if (decision == 'no' && typeof(account) != 'undefined') {
-        // TODO: make decision
-
+    } else if (action === 'no' && typeof(account) !== 'undefined') {
+        var denied=0;
+        conn.query(sql,[userId,agentId,denied,decisionTime,expireTime],function (err,result) {
+            if(err){
+                console.log(err);
+            }
+            console.log("decision denied:"+result);
+        })
         res.render('error', {
             title: 'Decision Confirmation',
             message: 'Passenger ' + account + " Fail the Audit",
@@ -410,11 +720,106 @@ router.get('/decision', function(req, res, next) {
             'Account raises concerns regarding this traveler’s ' +
             'entry into the United States.'
         });
-    } else if (decision == 'home') {
+    } else if (action === 'home') {
         res.redirect('portal');
     } else {
         res.redirect('submit');
     }
+});
+
+/**
+ * GET addAccounts page. Surpervisor manage agents' accounts.
+ */
+router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
+    const action = req.query.action;
+    const curAgentlevel = req.session.level;
+    const curAgentAccount = req.session.agentName;
+    const firstName=req.query.first;
+    const lastName=req.query.last;
+    const agentRole=req.query.role;
+
+    if(curAgentlevel !==SupervisorLevel){
+        res.render('error', {
+            title: 'Unauthenticated Acces',
+            message: 'Unauthenticated Access to page for superviser ',
+            info: 'Only surperviser can access this page'
+        });
+    }
+
+    if (action === 'edit') {
+    } else if (action === 'delete') {
+        const agentName=firstName+' '+lastName;
+        const deleteAgentAccountSQL='delete from Agent where agentName = ?';
+        conn.query(deleteAgentAccountSQL,[agentName],function (err, result) {
+            dealwithInternalError(res,err);
+            res.redirect('portal');
+        });
+
+    } else if (action === 'add') {
+        var agentLevel=-1;
+        
+        if(agentRole==='Supervisor'){
+            agentLevel=3;
+        }else if(agentRole==='Agent'){
+            agentLevel=1;
+        }else{
+            res.render('error', {
+                title: 'Invalid role',
+                message: 'Invalid role',
+                info: 'The role of an Agent must be "supervisor" or "Agent".'
+            });
+            res.end();
+        }
+
+        const agentName=firstName+' '+lastName;
+        var agentAccount=agentName.toLowerCase();
+        agentAccount=agentAccount.replace(' ','_');
+        var agentPassword=agentAccount;
+        const addAgentAccountSQL='insert into Agent(agentName,level,account,password) values(?,?,?,?)';
+
+        bcrypt.hash(agentPassword, saltRounds, function(err, hash) {
+            conn.query(addAgentAccountSQL,[agentName,agentLevel,agentAccount,hash],function (err, result) {
+                dealwithInternalError(res,err);
+                res.redirect('portal');
+            });
+        });
+
+    } else {
+        const getAgentAccountsSQL='select * from Agent where agentName != ?';
+        conn.query(getAgentAccountsSQL,[curAgentAccount],function (err, result) {
+            dealwithInternalError(res,err);
+            var accounts = [];
+            for(var index in result){
+                var name=result[index]['agentName'].split(' ');
+                var agentLevel=result[index]['level'];
+                var agentRole;
+                if(agentLevel === 3){
+                    agentRole='Supervisor';
+                }else if(agentLevel === 1){
+                    agentRole='Agent';
+                }else{
+                    res.render('error',{
+                        title: 'Internal error',
+                        message: 'Internal error',
+                        info: 'An internal error happend! Sorry for this.'
+                    });
+                }
+                accounts.push({
+                    'first':name[0],
+                    'last':name[1],
+                    'role':agentRole
+                })
+            }
+            res.render('addAccounts', {
+                title: 'Accounts Management', accounts: accounts
+            });
+        })
+    }
+});
+
+/* GET addCustomFlag page. */
+router.get('/addCustomFlag', checkSignIn, connectToDB, function(req, res, next) {
+    // TODO: add custom flag
 });
 
 module.exports = router;

@@ -1,8 +1,15 @@
-﻿var express = require('express');
+﻿/**
+ *
+ * used to connect to database
+ */
+
+var express = require('express');
 var client = require('mysql');
 var app = express();
 
-// init database setting
+/**
+ * init database setting
+ */
 var settings = {
     host: '104.197.6.255',
     user: 'peuser',
