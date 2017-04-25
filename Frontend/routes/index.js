@@ -533,6 +533,13 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
                 }
                 var degreeType;
                 var comment;
+                //fixed null value for tweetDate
+                var tweetDate=null;
+                if(result[index].postTime !==undefined){
+                    tweetDate=result[index].postTime.toLocaleDateString();
+                }else{
+                    tweetDate="null";
+                }
                 if(result[index].degree !== null){
                     switch(result[index].degree) {
                         case 1: degreeType = 'danger';comment='(flagged)';break;
@@ -545,14 +552,14 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
                     );
                     data.push({
                         type: degreeType,
-                        date: result[index].postTime.toLocaleDateString(),
+                        date: tweetDate,
                         comment: comment,
                         content: content
                     });
                 } else {
                     data.push({
                         type: 'success',
-                        date: result[index].postTime.toLocaleDateString(),
+                        date: tweetDate,
                         comment: '(not flagged)',
                         content: [{type:"text",content:result[index].anonymizedText}]
                     });
@@ -622,6 +629,13 @@ router.get('/original', checkSignIn, connectToDB, function(req, res, next) {
                         }
                         var degreeType;
                         var comment;
+                        //fixed null value for tweetDate
+                        var tweetDate=null;
+                        if(result[index].postTime !==undefined){
+                            tweetDate=result[index].postTime.toLocaleDateString();
+                        }else{
+                            tweetDate="null";
+                        }
                         if(result[index].degree !== null){
                             switch(result[index].degree) {
                                 case 1: degreeType = 'danger';comment='(flagged)';break;
@@ -634,14 +648,14 @@ router.get('/original', checkSignIn, connectToDB, function(req, res, next) {
                             );
                             data.push({
                                 type: degreeType,
-                                date: result[index].postTime.toLocaleDateString(),
+                                date: tweetDate,
                                 comment: comment,
                                 content: content
                             });
                         } else {
                             data.push({
                                 type: 'success',
-                                date: result[index].postTime.toLocaleDateString(),
+                                date: tweetDate,
                                 comment: '(not flagged)',
                                 content: [{type:"text",content:result[index].tweetText}]
                             });
@@ -757,7 +771,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
 
     } else if (action === 'add') {
         var agentLevel=-1;
-        
+
         if(agentRole==='Supervisor'){
             agentLevel=3;
         }else if(agentRole==='Agent'){
