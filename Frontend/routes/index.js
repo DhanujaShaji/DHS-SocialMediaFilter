@@ -473,23 +473,7 @@ router.get('/report', checkSignIn, function(req, res, next) {
 
             var sql = "select userId from user where userName = '" + account + "'";
             conn.query(sql,function (err, result) {
-                if (result.length === 1) {
-                    req.session.userId = result[0].userId;
-                    console.log("userId:", result[0].userId);
-                    data = [
-                        {'title': 'Flagged Tweets:', 'content': [
-                            {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
-                            {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
-                        ]},
-                        {'title': 'Blacklisted Entities Following:', 'content': [
-                            {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
-                            {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
-                        ]},
-                        {'title': 'Other Statistic Report:', 'content': [
-                            {'type': 'paragraph', 'content': '......'}
-                        ]}];
-                    res.render('report', { title: 'Statistic Report', data: data, account: account  });
-                } else {
+                if(err){
                     console.log("cannot find users!");
                     res.render('error', {
                         title: 'User not exist',
@@ -497,6 +481,22 @@ router.get('/report', checkSignIn, function(req, res, next) {
                         info: 'Please check the user name and re-submit again'
                     });
                 }
+
+                req.session.userId = result[0].userId;
+                console.log("userId:", result[0].userId);
+                data = [
+                    {'title': 'Flagged Tweets:', 'content': [
+                        {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
+                        {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
+                    ]},
+                    {'title': 'Blacklisted Entities Following:', 'content': [
+                        {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
+                        {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
+                    ]},
+                    {'title': 'Other Statistic Report:', 'content': [
+                        {'type': 'paragraph', 'content': '......'}
+                    ]}];
+                res.render('report', { title: 'Statistic Report', data: data, account: account  });
             });
         });
     } else if (action === 'no' && typeof(account) !== 'undefined') {
@@ -535,7 +535,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
                 var comment;
                 //fixed null value for tweetDate
                 var tweetDate=null;
-                if(result[index].postTime !==undefined){
+                if(result[index].postTime !==null){
                     tweetDate=result[index].postTime.toLocaleDateString();
                 }else{
                     tweetDate="null";
@@ -631,7 +631,7 @@ router.get('/original', checkSignIn, connectToDB, function(req, res, next) {
                         var comment;
                         //fixed null value for tweetDate
                         var tweetDate=null;
-                        if(result[index].postTime !==undefined){
+                        if(result[index].postTime !==null){
                             tweetDate=result[index].postTime.toLocaleDateString();
                         }else{
                             tweetDate="null";
