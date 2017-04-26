@@ -457,7 +457,7 @@ router.get('/report', checkSignIn, function(req, res, next) {
         account = account.replace(" ", "+");
         const options = {
             method: 'get',
-            uri:'http://128.237.161.160:8080/analysis',
+            uri:'http://35.184.118.200:8080/analysis',
             json:true,
             qs:{
                 userId:account
@@ -473,23 +473,7 @@ router.get('/report', checkSignIn, function(req, res, next) {
 
             var sql = "select userId from user where userName = '" + account + "'";
             conn.query(sql,function (err, result) {
-                if (result.length === 1) {
-                    req.session.userId = result[0].userId;
-                    console.log("userId:", result[0].userId);
-                    data = [
-                        {'title': 'Flagged Tweets:', 'content': [
-                            {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
-                            {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
-                        ]},
-                        {'title': 'Blacklisted Entities Following:', 'content': [
-                            {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
-                            {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
-                        ]},
-                        {'title': 'Other Statistic Report:', 'content': [
-                            {'type': 'paragraph', 'content': '......'}
-                        ]}];
-                    res.render('report', { title: 'Statistic Report', data: data, account: account  });
-                } else {
+                if(err){
                     console.log("cannot find users!");
                     res.render('error', {
                         title: 'User not exist',
@@ -497,6 +481,22 @@ router.get('/report', checkSignIn, function(req, res, next) {
                         info: 'Please check the user name and re-submit again'
                     });
                 }
+
+                req.session.userId = result[0].userId;
+                console.log("userId:", result[0].userId);
+                data = [
+                    {'title': 'Flagged Tweets:', 'content': [
+                        {'type': 'paragraph', 'content': '[num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
+                        {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
+                    ]},
+                    {'title': 'Blacklisted Entities Following:', 'content': [
+                        {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
+                        {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
+                    ]},
+                    {'title': 'Other Statistic Report:', 'content': [
+                        {'type': 'paragraph', 'content': '......'}
+                    ]}];
+                res.render('report', { title: 'Statistic Report', data: data, account: account  });
             });
         });
     } else if (action === 'no' && typeof(account) !== 'undefined') {
@@ -533,6 +533,13 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
                 }
                 var degreeType;
                 var comment;
+                //fixed null value for tweetDate
+                var tweetDate=null;
+                if(result[index].postTime !==null){
+                    tweetDate=result[index].postTime.toLocaleDateString();
+                }else{
+                    tweetDate="null";
+                }
                 if(result[index].degree !== null){
                     switch(result[index].degree) {
                         case 1: degreeType = 'danger';comment='(flagged)';break;
@@ -545,14 +552,14 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
                     );
                     data.push({
                         type: degreeType,
-                        date: result[index].postTime.toLocaleDateString(),
+                        date: tweetDate,
                         comment: comment,
                         content: content
                     });
                 } else {
                     data.push({
                         type: 'success',
-                        date: result[index].postTime.toLocaleDateString(),
+                        date: tweetDate,
                         comment: '(not flagged)',
                         content: [{type:"text",content:result[index].anonymizedText}]
                     });
@@ -622,6 +629,13 @@ router.get('/original', checkSignIn, connectToDB, function(req, res, next) {
                         }
                         var degreeType;
                         var comment;
+                        //fixed null value for tweetDate
+                        var tweetDate=null;
+                        if(result[index].postTime !==null){
+                            tweetDate=result[index].postTime.toLocaleDateString();
+                        }else{
+                            tweetDate="null";
+                        }
                         if(result[index].degree !== null){
                             switch(result[index].degree) {
                                 case 1: degreeType = 'danger';comment='(flagged)';break;
@@ -634,14 +648,14 @@ router.get('/original', checkSignIn, connectToDB, function(req, res, next) {
                             );
                             data.push({
                                 type: degreeType,
-                                date: result[index].postTime.toLocaleDateString(),
+                                date: tweetDate,
                                 comment: comment,
                                 content: content
                             });
                         } else {
                             data.push({
                                 type: 'success',
-                                date: result[index].postTime.toLocaleDateString(),
+                                date: tweetDate,
                                 comment: '(not flagged)',
                                 content: [{type:"text",content:result[index].tweetText}]
                             });
@@ -757,7 +771,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
 
     } else if (action === 'add') {
         var agentLevel=-1;
-        
+
         if(agentRole==='Supervisor'){
             agentLevel=3;
         }else if(agentRole==='Agent'){
@@ -817,9 +831,11 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
     }
 });
 
-/* GET addCustomFlag page. */
+/*
+/!* GET addCustomFlag page. *!/
 router.get('/addCustomFlag', checkSignIn, connectToDB, function(req, res, next) {
     // TODO: add custom flag
 });
+*/
 
 module.exports = router;
