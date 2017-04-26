@@ -61,7 +61,8 @@ public class TwitterFilter {
     public JSONObject checkTweets(List<String> tweets) {
         JSONArray flaged = new JSONArray();
         JSONArray flaggedDetail = new JSONArray();
-
+        
+//        System.out.println(tweets.toString());
         for (String twitt : tweets) {
             boolean flagged = false;
             JSONObject detail = new JSONObject();
@@ -138,7 +139,7 @@ public class TwitterFilter {
         List<String> res = new ArrayList<>();
         for (int i = 0; i < tweets.size(); i++) {
             String twitt = tweets.get(i);
-            String censoredTwitt = twitt;
+            String censoredTwitt = new String(twitt);
 
             for (String censorStr : censorWords) {
                 if (censoredTwitt.indexOf(censorStr) != -1) {
@@ -195,11 +196,11 @@ public class TwitterFilter {
         // ***All twitts that contains flags, and detail about positions of
         // flags
         JSONObject flagRes = tf.checkTweets(tweets);
-        System.out.println(flagRes);
+
         BlackList blacklist = new BlackList(BLACK_LIST);
         List<String> list = new ArrayList<>();
         list = tS.getFriends();
-        System.out.println(list);
+        
         // ***Friends in blacklist
         List<String> checkFriendsRes = blacklist.checkFriends(list);
         JSONObject jo = new JSONObject();
@@ -210,59 +211,98 @@ public class TwitterFilter {
         JSONArray detail = (JSONArray)flagRes.get("flagedDetail");
         for (int i = 0; i < detail.size(); i++) {
             JSONObject obj = (JSONObject) detail.get(i);
-            System.out.println(obj.keySet().toString());
+//            System.out.println(obj.keySet().toString());
         }
         
         int userId = 0;
         Connection conn = null;
-        try {
-            String url = "jdbc:mysql://104.197.6.255:3306/EPS";
-            Class.forName("com.mysql.jdbc.Driver");
-            conn = DriverManager.getConnection(url, "peuser", "peuser");
-            System.out.println("Database connection established");
-            Statement statement = conn.createStatement();
-            StringBuilder resTweet = new StringBuilder();
-            StringBuilder resFriends = new StringBuilder();
-            statement.executeUpdate("INSERT INTO user(userName) " + "VALUES (" + "\"" + name + "\"" + ")");
-            ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = " + "\'" + name + "\'");
-            while (rs.next()) {
-                userId = rs.getInt("userId");
-            }
-            System.out.println(tweets);
-            System.out.println(censorRes);
-            for (int i = 0; i < censorRes.size(); i++) {
+        try
+        {
+           String url = "jdbc:mysql://104.197.6.255:3306/EPS";
+           Class.forName("com.mysql.jdbc.Driver");
+           conn = DriverManager.getConnection (url,"peuser","peuser");
+           System.out.println ("Database connection established");
+           Statement statement = conn.createStatement();
+           StringBuilder resTweet= new StringBuilder();
+           StringBuilder resFriends= new StringBuilder();
+           statement.executeUpdate("INSERT INTO user(userName) " + "VALUES (" +  "\"" + name + "\"" + ")");
+           ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
+           while (rs.next()) {
+              userId = rs.getInt("userId");
+          }
+//           System.out.println(tweets);
+//           System.out.println(censorRes);
+           for(int i=0; i< censorRes.size(); i++){
                 resTweet = new StringBuilder();
                 resTweet.append("\"");
                 resTweet.append(userId);
                 resTweet.append("\"");
                 resTweet.append(",");
                 resTweet.append("\"");
-                resTweet.append(tweets.get(i));
+                resTweet.append(tweets.get(i)); 
                 resTweet.append("\"");
                 resTweet.append(",");
                 resTweet.append("\"");
                 resTweet.append(censorRes.get(i));
-                resTweet.append("\"");
-                statement.executeUpdate(
-                        "INSERT INTO tweets(userId, tweetText, anonymizedText) " + "VALUES (" + resTweet + ")");
-            }
-            for (int i = 0; i < checkFriendsRes.size(); i++) {
-                resFriends = new StringBuilder();
-                resFriends.append("\"");
-                resFriends.append(userId);
-                resFriends.append("\"");
-                resFriends.append(",");
-                resFriends.append("\"");
-                resFriends.append(checkFriendsRes.get(i));
-                resFriends.append("\"");
-                statement.executeUpdate("INSERT INTO follow(userId, followerName) " + "VALUES (" + resFriends + ")");
-            }
-            conn.close();
+                resTweet.append("\"");        
+                statement.executeUpdate("INSERT INTO tweets(userId, tweetText, anonymizedText) " + "VALUES (" +  resTweet + ")");
+           }
+           for(int i=0; i< checkFriendsRes.size() ;i++){
+               resFriends = new StringBuilder();
+               resFriends.append("\"");
+               resFriends.append(userId);
+               resFriends.append("\"");
+               resFriends.append(",");
+               resFriends.append("\"");
+               resFriends.append(checkFriendsRes.get(i));
+               resFriends.append("\"");
+               statement.executeUpdate("INSERT INTO follow(userId, followerName) " + "VALUES (" +  resFriends + ")");
+           }
+          JSONArray a = (JSONArray)flagRes.get("flagedDetail");
+          JSONArray b = (JSONArray)flagRes.get("flaged");
+          StringBuilder resFlagDetail = new StringBuilder();
+          StringBuilder  resFlags = new StringBuilder();
+           for(int i=0; i< a.size(); i++){  
+                JSONObject r = (JSONObject)a.get(i);
+                String s = (String)b.get(i);
+                resFlags = new StringBuilder();
+                resFlagDetail = new StringBuilder();
+                resFlags.append("\"");
+                resFlags.append(r.keySet().toString());
+                resFlags.append("\"");  
+                statement.executeUpdate("INSERT INTO flag(flagContext) " + "VALUES (" +  resFlags + ")");
+                int tweetId = 0;
+                int flagId = 0;
+                ResultSet rs1 = statement.executeQuery("SELECT flagId  FROM flag WHERE flagContext = "+ "\'" + r.keySet().toString() + "\'");
+                while (rs1.next()) {
+                   flagId = rs1.getInt("flagId");
+                }
+                ResultSet rs2 = statement.executeQuery("SELECT tweetId  FROM tweets WHERE tweetText = "+ "\'" + s + "\'");
+                while (rs2.next()) {
+                   tweetId = rs2.getInt("tweetId");
+                }
+                resFlagDetail.append("\"");
+                resFlagDetail.append(tweetId);
+                resFlagDetail.append("\"");
+                resFlagDetail.append(",");
+                resFlagDetail.append("\"");
+                resFlagDetail.append(flagId);
+                resFlagDetail.append("\"");
+                resFlagDetail.append(",");
+                resFlagDetail.append("\"");
+                resFlagDetail.append((int)r.values().toString().charAt(1));
+                resFlagDetail.append("\"");
+//                System.out.println(r.values().toString());
+                statement.executeUpdate("INSERT INTO flags2tweets(tweetId, flagId, indices) " + "VALUES (" +  resFlagDetail + ")");
+           }
+           conn.close();
+           
+       }
+       catch (Exception e)
+       {
+           e.printStackTrace();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }
+       }
         return jo.toJSONString();
     }
 }
