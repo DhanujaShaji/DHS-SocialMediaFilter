@@ -45,7 +45,6 @@ block content
                         div(class="panel panel-#{tweet['type']}")
                             if tweet['comment'] == '(not flagged)'
                                 div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
-                                    a(href='/addCustomFlag?tid='+tweet['id'])  Add Custom Flag
                             else
                                 div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
                             div(class='panel-body')
