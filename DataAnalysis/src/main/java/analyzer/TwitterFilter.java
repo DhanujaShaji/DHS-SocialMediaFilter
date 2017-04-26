@@ -206,6 +206,13 @@ public class TwitterFilter {
         jo.put("checkFriendsRes", checkFriendsRes.toString());
         jo.put("censorRes", censorRes.toString());
         jo.put("flagRes", flagRes);
+        
+        JSONArray detail = (JSONArray)flagRes.get("flagedDetail");
+        for (int i = 0; i < detail.size(); i++) {
+            JSONObject obj = (JSONObject) detail.get(i);
+            System.out.println(obj.keySet().toString());
+        }
+        
         int userId = 0;
         Connection conn = null;
         try {
