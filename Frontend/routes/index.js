@@ -740,7 +740,7 @@ router.get('/decision', checkSignIn, connectToDB, function(req, res, next) {
             }
             console.log("decision pass:"+result);
         })
-        res.render('error', {
+        res.render('info', {
             title: 'Decision Confirmation',
             message: 'Passenger ' + account + " Pass the Twitter Audit",
             info: 'You have determined that the traveler’s Twitter ' +
@@ -755,7 +755,7 @@ router.get('/decision', checkSignIn, connectToDB, function(req, res, next) {
             }
             console.log("decision denied:"+result);
         })
-        res.render('error', {
+        res.render('info', {
             title: 'Decision Confirmation',
             message: 'Passenger ' + account + " Fail the Twitter Audit",
             info: 'You have determined that the traveler’s Twitter ' +
