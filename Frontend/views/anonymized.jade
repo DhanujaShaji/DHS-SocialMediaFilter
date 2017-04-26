@@ -63,7 +63,8 @@ block content
                     p Click 'No', if you need to review more information before making a decision.
                     div(class='f1-buttons')
                         input(type='hidden', name='twitter', value=account)
-                        button(type='submit', class='btn btn-yes', name='action', value='yes') Yes
+                        button(type='button', class='btn btn-success',
+                        onclick="location.href=\'anonymized?action=yes&twitter=" + account + "\'") Yes
                         button(type='button', class='btn btn-no', data-toggle="collapse",
                         data-target="#passcode", aria-expanded="false", aria-controls="passcode") No
                         button(type='submit', class='btn btn-info', name='action', value='home') Home

@@ -35,10 +35,9 @@ block content
                     div(class='form-group')
 
                         label(class='sr-only', for='twitter') Twitter handle
-                        input(type='text', name='twitter', placeholder='Enter Twitter handle here…',
-                        class='f1-twitter-account form-control', id='twitter')
+                        input(type='text', name='twitter', class='f1-twitter-account form-control', id='twitter')
                     div(class='f1-buttons')
                         button(type='submit', class='btn btn-submit', name='action', value='submit') Submit
-                        button(type='submit', class='btn btn-info', name='action', value='home') Home
+                        button(action='action', type='button', class='btn btn-submit', onclick='history.go(-1);') Back
 
 block script
