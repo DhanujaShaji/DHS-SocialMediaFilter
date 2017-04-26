@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class BlackList {
-    private static String BLACKLIST_FILE = "./doc/blacklist";
+    private static String BLACKLIST_FILE = "BlacklistedFollowers";
     private HashSet<String> blacklistSet;
 
     /**
