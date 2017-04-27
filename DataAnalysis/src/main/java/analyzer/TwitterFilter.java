@@ -269,19 +269,6 @@ public class TwitterFilter {
                 resFlagDetail = new StringBuilder();
                 resFlags.append("\"");
                 resFlags.append(r.keySet().toString());
-                for (Object obj : r.keySet()) {
-                	//this is the word
-                	String key = (String) obj;
-                	System.out.println(key);
-                	//this is array of positions.
-                	JSONArray values = (JSONArray)r.get(key);
-                	for (Object posObj : values) {
-                		//this is one position.
-                		int pos = (Integer)posObj;
-                		System.out.println(pos);
-                	}
-                	
-                }
                 resFlags.append("\"");  
                 statement.executeUpdate("INSERT INTO flag(flagContext) " + "VALUES (" +  resFlags + ")");
                 int tweetId = 0;
@@ -294,7 +281,7 @@ public class TwitterFilter {
                 while (rs2.next()) {
                    tweetId = rs2.getInt("tweetId");
                 }
-                resFlagDetail.append("\"");
+               resFlagDetail.append("\"");
                 resFlagDetail.append(tweetId);
                 resFlagDetail.append("\"");
                 resFlagDetail.append(",");
@@ -303,10 +290,24 @@ public class TwitterFilter {
                 resFlagDetail.append("\"");
                 resFlagDetail.append(",");
                 resFlagDetail.append("\"");
-                resFlagDetail.append((int)r.values().toString().charAt(1));
-                resFlagDetail.append("\"");
-//                System.out.println(r.values().toString());
-                statement.executeUpdate("INSERT INTO flags2tweets(tweetId, flagId, indices) " + "VALUES (" +  resFlagDetail + ")");
+               for (Object obj : r.keySet()) {
+                	//this is the word
+                	String key = (String) obj;
+                	System.out.println(key);
+                	//this is array of positions.
+                	JSONArray values = (JSONArray)r.get(key);
+                	for (Object posObj : values) {
+                		//this is one position.
+                		int pos = (Integer)posObj;
+                        resFlagDetail.append(pos);
+                        resFlagDetail.append("\"");
+                        statement.executeUpdate("INSERT INTO flags2tweets(tweetId, flagId, indices) " + "VALUES (" +  resFlagDetail + ")");
+                		System.out.println(pos);
+                	}
+                	
+                }
+                
+               
            }
            conn.close();
            
