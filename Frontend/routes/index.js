@@ -12,6 +12,7 @@ const pageLimit=8; //limitation for number of tweets to be displayed on each pag
 const saltRounds = 10; // the number of rounds to be hashed.
 const timeSetting='0 0 5 * * *' //5:00 AM of each day.
 const testTimeSetting='0 * * * * *'; //0s of each miniue.
+const deletePasscodeTimeSetting='0 * * * * *'
 const debug=false;
 
 
@@ -46,6 +47,15 @@ schedule.scheduleJob(testTimeSetting, function(){
     console.log('The answer to life, the universe, and everything!');
 });
 
+schedule.scheduleJob(deletePasscodeTimeSetting, function(){
+    if (!conn || !conn._socket.readable) {
+        conn = db.getConnection(db.client, db.settings);
+        db.connectDB(conn);
+    }
+    const deletePasscodeSQL='delete from passcode where createTime < now() - INTERVAL 2 minute;'
+    conn.query(deletePasscodeSQL,function (err, result) {
+    })
+});
 /**
  *
  * @param value
@@ -96,6 +106,9 @@ function authenticate(name, pass, fn) {
     var retrievePassword='select agentId,agentName,level,password from Agent where account=?';
     conn.query(retrievePassword,[name],function (err, res) {
         if(!err){
+            if(res.length===0){
+                return fn(null);
+            }
             var hashedPassword=res[0]['password'];
             var agent = res[0]['agentName'];
             var agentId = res[0]['agentId'];
@@ -112,18 +125,6 @@ function authenticate(name, pass, fn) {
             });
         }
     });
-
-    /*var authenticateSQL="select agentId,agentName,level from Agent where account = ? && password = ?";
-    conn.query(authenticateSQL,[name,pass],function (err,res) {
-        if(res!==undefined&&res.length===1){
-            var agent = res[0]['agentName'];
-            var agentId = res[0]['agentId'];
-            var agentLevel = res[0]['level'];
-            return fn(agent,agentId,agentLevel);
-        } else {
-            return fn(null);
-        }
-    });*/
 }
 
 /**
@@ -187,7 +188,11 @@ router.get('/', checkSignIn, function(req, res, next) {
  *  GET login page.
  */
 router.get('/login', function (req, res, next) {
-    res.render('login', {title: 'Login Agent Account'});
+    if(req.session.agentName){
+        res.redirect('portal');
+    }else{
+        res.render('login', {title: 'Login Agent Account'});
+    }
 });
 
 /**
@@ -294,7 +299,7 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
 
     if (action === 'generate') {
         //generate new passcode
-        var code = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 30);
+        var code = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 8);
 
         generatedPasscodes.push({'code': code, 'valid': 'Status'});
         var valid=1;
@@ -315,13 +320,19 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
         res.redirect('portal');
     } else {
         //get past valide passcode.
-        const getPasscodeSQL = 'select passcode from passcode where valid = 1';
+        const getPasscodeSQL = 'select passcode,valid from passcode';
         conn.query(getPasscodeSQL,function (err, result) {
-            if(result.length!==1){
-                console.log("get passcode err!");
+            if(err) {
+                dealwithInternalError(res, err);
             }
-            console.log("retrieved passcode:"+result[0]['passcode']);
-            generatedPasscodes.push({'code': result[0]['passcode'], 'valid': 'valid'});
+            for(var index in result){
+                //console.log("index:"+index+" valid:"+result[index]['valid']);
+                if(result[index]['valid']===1){
+                    generatedPasscodes.push({'code': result[index]['passcode'], 'valid': 'valid'});
+                }else{
+                    generatedPasscodes.push({'code': result[index]['passcode'], 'valid': 'invalid'});
+                }
+            }
             data = {'passcode': 'passcode will appear here when generated…', 'generatedPasscodes': generatedPasscodes};
             res.render('passcode', { title: 'Passcode' , data: data });
         })
@@ -333,15 +344,40 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
  */
 router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
+    var agentLevel = req.session.level;
+    var agentId = req.session.id;
 
     if (action === 'home') {
         res.redirect('portal');
     } else {
-        const previousDecisionsSQL="select decisionId, decisionTime, userName, agentName " +
-            "from decision, user, Agent where decision.userId = user.userId &&" +
-            " decision.agentId = Agent.agentId";
-        conn.query(previousDecisionsSQL,function (err, result) {
-            if(result.length!==0){
+        if(agentLevel == SupervisorLevel){
+            const previousDecisionsSQL="select decisionId, decisionTime, userName, agentName " +
+                "from decision, user, Agent where decision.userId = user.userId &&" +
+                " decision.agentId = Agent.agentId";
+            conn.query(previousDecisionsSQL,function (err, result) {
+                if(result.length!==0){
+                    var previousDecisions = [];
+                    for(var index in result){
+                        if(index>pageLimit){
+                            break;
+                        }
+                        previousDecisions.push({
+                            'id': result[index]['decisionId'],
+                            'date': result[index]['decisionTime'].toLocaleDateString(),
+                            'twitter': result[index]['userName'],
+                            'agent': result[index]['agentName']
+                        })
+                    }
+                    res.render('review', {title: 'Review Previous Decision', 'previousDecisions': previousDecisions});
+                }else{
+                    console.log("review error: result length is 0");
+                }
+            });
+        } else {
+            const previousDecisionsSQL2="select decisionId, decisionTime, userName, agentName " +
+                "from decision, user, Agent where decision.userId = user.userId &&" +
+                " decision.agentId = Agent.agentId && Agent.agentId = ?";
+            conn.query(previousDecisionsSQL2, [agentId], function (err, result) {
                 var previousDecisions = [];
                 for(var index in result){
                     if(index>pageLimit){
@@ -355,10 +391,8 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
                     })
                 }
                 res.render('review', {title: 'Review Previous Decision', 'previousDecisions': previousDecisions});
-            }else{
-                console.log("review error: result length is 0");
-            }
-        });
+            });
+        }
     }
 });
 
@@ -367,40 +401,53 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
  */
 router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
-    var decisionId = req.query.id; //cannot get decision Id from front end;
+    var decisionId = req.query.id;
     // You can get decision id
-    // console.log(decisionId);
+    console.log("decisionId:"+decisionId);
+    console.log("action:"+action);
 
     if (action === 'review' && typeof(decisionId) !== 'undefined') {
         var decisionData = {};
-        const getDecisionSQL='select fullName, userName, agentName, value ' +
-            'from decision, user, Agent where decision.decisionId = ? && decision.userId = user.userId &&' +
-            'decision.agentId = Agent.agentId';
+        const getDecisionSQL='select decisionId, userName, agentName, value, expireTime ' +
+            'from decision inner join user on(decision.userId = user.userId) ' +
+            'inner join Agent on(decision.agentId = Agent.agentId) ' +
+            'where decision.decisionId = ?';
+        const getOtherDecisionSQL='select decisionId, agentName, decisionTime, valid ' +
+            'from decision inner join user on(decision.userId = user.userId) ' +
+            'inner join Agent on(decision.agentId = Agent.agentId) ' +
+            'where user.userName = ? && decision.decisionId != ?';
         conn.query(getDecisionSQL, [decisionId], function (err, result) {
-            if(err){
-                console.log(err);
+            dealwithInternalError(res,err);
+            var decision='denied';
+            var userName=result[0].userName;
+            if(result[0].value ===1){
+                decision='Passed';
             }
-            if(result===undefined || result.length!==1){
-                console.log("get decision detail err!");
-            }
+            decisionData = {'twitter': userName,
+                'decision': decision,
+                'agent': result[0].agentName,
+                'expiration': result[0].expireTime.toLocaleDateString(),
+                'tweets':[],
+                'history': []
+            };
 
-            // TODO: fill in the tweets
-            decisionData = {'twitter': 'twitter handle',
-                'decision': 'Passed',
-                'agent': 'agent',
-                'expiration': '2012-12-22 00:00:00',
-                'tweets': [
-                    {'date': '2012-12-21 00:00:00',
-                    'type': 'danger',
-                    'content': [
-                        {'type': 'text', 'content': 'bomb'}]}],
-                'history': [
-                    {'date': '2012-12-21',
-                    'agent': 'xxx',
-                    'action': 'change decision'}
-                ]}
-
-            res.render('detail', {title: 'Decision Detail', data: decisionData});
+            conn.query(getOtherDecisionSQL,[userName, decisionId],function (err, otherResult) {
+                //dealwithInternalError(res,err);
+                console.log(otherResult);
+                console.log("userName"+userName);
+                for(var index in otherResult){
+                    var action='original decision';
+                    if(otherResult[index].valid===1){
+                        action='change decisio';
+                    }
+                    decisionData.history.push({
+                        'date':otherResult[index].decisionTime,
+                        'agent':otherResult[index].agentName,
+                        'action':'change decision'
+                    })
+                }
+                res.render('detail', {title: 'Decision Detail', data: decisionData});
+            });
         });
     } else if (action === 'increase' && typeof(decisionId) !== 'undefined') {
         console.log("detail action increase:"+decisionId);
@@ -423,6 +470,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
         const getDecision='select * from decision where decisionId = ? && valid = 1';
         const addNewDecision="insert into decision(decisionId, userId,agentId,value,decisionTime,expireTime) values(?,?,?,?,?,?)";
         const addLog='insert into decisionChangeLog(oriDecisionId , newDecisionId ) values(?,?)';
+
         conn.query(changeOriDecision,[decisionId],function (err, result) {
             if(result.length!==1){
                 console.log("change decision result:" + result);
@@ -443,7 +491,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                 dealwithInternalError(err,res);
                 conn.query(addLog,[decisionId, newDecisionId],function (err, res) {
                     dealwithInternalError(err,res);
-                    res.redirect('portal');
+                    res.redirect('review');
                 })
             })
         });
@@ -478,6 +526,8 @@ router.get('/report', checkSignIn, function(req, res, next) {
 
     var action = req.query.action;
     var account = req.query.twitter;
+
+    account=account.trim();//remove leading and trailing space.
 
     if (action === 'submit' && typeof(account) !== 'undefined') {
         account = account.replace(" ", "+");
@@ -546,7 +596,6 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
     var account = req.query.twitter;
     var userId = req.session.userId;
 
-    console.log("anonymized action:"+action);
    if (action === 'audit' && typeof(userId) !== 'undefined') {
         var dataSQL= "select tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
             "flags2tweets.degree, flag.flagContext " +
@@ -794,7 +843,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
         const deleteAgentAccountSQL='delete from Agent where agentName = ?';
         conn.query(deleteAgentAccountSQL,[agentName],function (err, result) {
             dealwithInternalError(res,err);
-            res.redirect('portal');
+            res.redirect('addAccounts');
         });
 
     } else if (action === 'add') {
@@ -810,7 +859,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
                 message: 'Invalid role',
                 info: 'The role of an Agent must be "supervisor" or "Agent".'
             });
-            res.end();
+            return;
         }
 
         const agentName=firstName+' '+lastName;
@@ -822,7 +871,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
         bcrypt.hash(agentPassword, saltRounds, function(err, hash) {
             conn.query(addAgentAccountSQL,[agentName,agentLevel,agentAccount,hash],function (err, result) {
                 dealwithInternalError(res,err);
-                res.redirect('portal');
+                res.redirect('addAccounts');
             });
         });
 
