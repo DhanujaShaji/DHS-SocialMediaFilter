@@ -441,7 +441,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                         action='change decisio';
                     }
                     decisionData.history.push({
-                        'date':otherResult[index].decisionTime,
+                        'date':otherResult[index].decisionTime.toLocaleDateString(),
                         'agent':otherResult[index].agentName,
                         'action':'change decision'
                     })
