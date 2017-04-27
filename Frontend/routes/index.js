@@ -301,7 +301,7 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
         //generate new passcode
         var code = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 8);
 
-        generatedPasscodes.push({'code': code, 'valid': 'Status'});
+        generatedPasscodes.push({'code': code, 'valid': 'Valid'});
         var valid=1;
         const sql='insert into passcode(passcode,valid) value(?,?)';
         const changeValidSQL= 'update passcode set valid = 0 where valid =1';

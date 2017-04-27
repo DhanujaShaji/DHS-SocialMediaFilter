@@ -32,6 +32,7 @@ block content
                                 div(class='panel-body')
                                     p=decision['agent'] + ": " + decision['action']
                     div(class='f1-buttons')
+                        input(type="hidden" name="id" value=decisionId)
                         button(class='btn btn-primary' type="button" data-toggle="collapse" data-target="#tweets"
                         aria-expanded="false" aria-controls="tweets") Show Flag Tweets
                         button(type='submit', class='btn btn-yes', name='action', value='increase') Increase Retention by 1 Month
