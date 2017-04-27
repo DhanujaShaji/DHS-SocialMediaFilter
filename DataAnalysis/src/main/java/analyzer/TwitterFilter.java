@@ -19,6 +19,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.sql.*;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class TwitterFilter {
     private static final String FLAGGED_WORDS = "Flagged.txt";
@@ -75,11 +77,41 @@ public class TwitterFilter {
             }
 
             if (flagged) {
-                flaged.add(twitt);
+//                flaged.add(twitt);
+                detail.put("twitter", twitt);
                 flaggedDetail.add(detail);
             }
         }
         JSONObject res = new JSONObject();
+        Collections.sort(flaggedDetail, new Comparator<Object>() {
+            @Override
+            public int compare(Object o1, Object o2) {
+                JSONObject obj1 = (JSONObject)o1;
+                JSONObject obj2 = (JSONObject)o2;
+                int num1 = 0;
+                int num2 = 0;
+                for (Object key : obj1.keySet()) {
+                    System.out.println(key.toString());
+                    if(key.equals("twitter")) continue;
+                    JSONArray arr = (JSONArray)obj1.get((String)key);
+                    num1 += arr.size();
+                }
+                for (Object key : obj2.keySet()) {
+                    System.out.println(key.toString());
+                    if(key.equals("twitter")) continue;
+                    JSONArray arr = (JSONArray)obj2.get((String)key);
+                    num2 += arr.size();
+                }
+                return num2 - num1;
+            }
+        });
+        
+        for (Object obj : flaggedDetail) {
+            JSONObject jo = (JSONObject)obj;
+            flaged.add(jo.get("twitter"));
+            jo.remove("twitter");
+        }
+        
         res.put("flaged", flaged);
         res.put("flagedDetail", flaggedDetail);
 
