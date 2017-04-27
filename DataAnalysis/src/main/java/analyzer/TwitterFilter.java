@@ -269,6 +269,19 @@ public class TwitterFilter {
                 resFlagDetail = new StringBuilder();
                 resFlags.append("\"");
                 resFlags.append(r.keySet().toString());
+                for (Object obj : r.keySet()) {
+                	//this is the word
+                	String key = (String) obj;
+                	System.out.println(key);
+                	//this is array of positions.
+                	JSONArray values = (JSONArray)r.get(key);
+                	for (Object posObj : values) {
+                		//this is one position.
+                		int pos = (Integer)posObj;
+                		System.out.println(pos);
+                	}
+                	
+                }
                 resFlags.append("\"");  
                 statement.executeUpdate("INSERT INTO flag(flagContext) " + "VALUES (" +  resFlags + ")");
                 int tweetId = 0;
