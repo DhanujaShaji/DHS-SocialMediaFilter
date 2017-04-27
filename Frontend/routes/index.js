@@ -255,13 +255,20 @@ router.get('/portal',checkSignIn, function (req, res, next) {
     } else if (action === "review") {
         res.redirect('review');
     } else if (action === 'passcode') {
-
         res.redirect('passcode');
     } else if (action === 'account') {
         res.redirect('addAccounts');
     } else if (action == 'logout') {
         res.redirect('logout');
+    } else if (action == 'search') {
+        var keyword = req.query.keyword;
+        res.render('error', {
+            title: 'This function hasn\'t been implemented',
+            message: 'This function hasn\'t been implemented',
+            info: 'Search tweets with keyword \'' + keyword + '\'.'
+        });
     } else {
+        // TODO: get login user name or first name + last name
         var data = {"name": 'user'};
         res.render('portal', {title: 'Welcome ' + 'user', data: data});
     }
@@ -289,7 +296,7 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
         //generate new passcode
         var code = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 30);
 
-        generatedPasscodes.push({'code': code, 'valid': 'valid'});
+        generatedPasscodes.push({'code': code, 'valid': 'Status'});
         var valid=1;
         const sql='insert into passcode(passcode,valid) value(?,?)';
         const changeValidSQL= 'update passcode set valid = 0 where valid =1';
@@ -315,7 +322,7 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
             }
             console.log("retrieved passcode:"+result[0]['passcode']);
             generatedPasscodes.push({'code': result[0]['passcode'], 'valid': 'valid'});
-            data = {'passcode': 'passcode placeholder...', 'generatedPasscodes': generatedPasscodes};
+            data = {'passcode': 'passcode will appear here when generated…', 'generatedPasscodes': generatedPasscodes};
             res.render('passcode', { title: 'Passcode' , data: data });
         })
     }
@@ -361,6 +368,8 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
 router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
     var decisionId = req.query.id; //cannot get decision Id from front end;
+    // You can get decision id
+    // console.log(decisionId);
 
     if (action === 'review' && typeof(decisionId) !== 'undefined') {
         var decisionData = {};
@@ -374,6 +383,23 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             if(result===undefined || result.length!==1){
                 console.log("get decision detail err!");
             }
+
+            // TODO: fill in the tweets
+            decisionData = {'twitter': 'twitter handle',
+                'decision': 'Passed',
+                'agent': 'agent',
+                'expiration': '2012-12-22 00:00:00',
+                'tweets': [
+                    {'date': '2012-12-21 00:00:00',
+                    'type': 'danger',
+                    'content': [
+                        {'type': 'text', 'content': 'bomb'}]}],
+                'history': [
+                    {'date': '2012-12-21',
+                    'agent': 'xxx',
+                    'action': 'change decision'}
+                ]}
+
             res.render('detail', {title: 'Decision Detail', data: decisionData});
         });
     } else if (action === 'increase' && typeof(decisionId) !== 'undefined') {
@@ -476,9 +502,11 @@ router.get('/report', checkSignIn, function(req, res, next) {
                 if(err){
                     console.log("cannot find users!");
                     res.render('error', {
-                        title: 'User not exist',
-                        message: 'We cannot find the user you want to look ',
-                        info: 'Please check the user name and re-submit again'
+                        title: 'User Not Found',
+                        message: 'User Not Found',
+                        info: 'The Twitter handle entered could not be found. Please verify the spelling or search for' +
+                        ' the account on the Twitter website using either name or email of the registered account' +
+                        ' before proceeding.'
                     });
                 }
 
@@ -566,7 +594,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
                 }
 
             }
-            res.render('anonymized', { title: 'Anonymized Twitter Data', data: data, account: account });
+            res.render('anonymized', { title: 'Censored Twitter Data', data: data, account: account });
         });
     } else if (action == 'search' && typeof(account) != 'undefined') {
         var keyword = req.query.keyword;
@@ -712,9 +740,9 @@ router.get('/decision', checkSignIn, connectToDB, function(req, res, next) {
             }
             console.log("decision pass:"+result);
         })
-        res.render('error', {
+        res.render('info', {
             title: 'Decision Confirmation',
-            message: 'Passenger ' + account + " Pass the Audit",
+            message: 'Passenger ' + account + " Pass the Twitter Audit",
             info: 'You have determined that the traveler’s Twitter ' +
             'Account raises no concerns regarding this traveler’s entry ' +
             'into the United States.'
@@ -727,9 +755,9 @@ router.get('/decision', checkSignIn, connectToDB, function(req, res, next) {
             }
             console.log("decision denied:"+result);
         })
-        res.render('error', {
+        res.render('info', {
             title: 'Decision Confirmation',
-            message: 'Passenger ' + account + " Fail the Audit",
+            message: 'Passenger ' + account + " Fail the Twitter Audit",
             info: 'You have determined that the traveler’s Twitter ' +
             'Account raises concerns regarding this traveler’s ' +
             'entry into the United States.'
@@ -760,9 +788,8 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
         });
     }
 
-    if (action === 'edit') {
-    } else if (action === 'delete') {
-        const agentName=firstName+' '+lastName;
+    if (action === 'delete') {
+        const agentName = req.query.agentName;
         const deleteAgentAccountSQL='delete from Agent where agentName = ?';
         conn.query(deleteAgentAccountSQL,[agentName],function (err, result) {
             dealwithInternalError(res,err);
@@ -798,6 +825,8 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
             });
         });
 
+    } else if (action === 'home') {
+        res.redirect('portal');
     } else {
         const getAgentAccountsSQL='select * from Agent where agentName != ?';
         conn.query(getAgentAccountsSQL,[curAgentAccount],function (err, result) {

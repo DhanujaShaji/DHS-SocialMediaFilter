@@ -1,4 +1,12 @@
 extends layout
+block nav
+    nav(class="navbar navbar-default navbar-fixed-top")
+        div(class="container")
+            form(role='form', class="navbar-form navbar-right", action='/portal', method='get')
+                div(class="form-group")
+                    input(type="text", class="form-control", placeholder="Search", name='keyword')
+                input(type='hidden', name='twitter', value=account)
+                button(type="submit", class="btn btn-primary", name='action', value='search') Search
 
 block content
     div(class='row')
@@ -6,7 +14,6 @@ block content
             form(role='form', action='/portal', method='get', class='f1')
                 h3 Administration Panel: Review Past Decisions.
                 fieldset
-                    h4 Decision Lists:
                     table(class="table table-striped")
                         thead
                             tr
@@ -17,12 +24,14 @@ block content
                         tbody
                             if typeof(previousDecisions) != "undefined"
                                 each decision in previousDecisions
-                                    tr(onclick="location.href=\'detail?action=review&id=" + decision['id'] + "\'")
+                                    tr
                                         th= decision['id']
                                         td= decision['date']
-                                        td= decision['twitter']
+                                        td
+                                            u(onclick="location.href=\'detail?action=review&id=" + decision['id'] + "\'")=decision['twitter']
                                         td= decision['agent']
                     div(class="f1-buttons")
-                        button(type='submit', class='btn btn-info', name='action', value='home') Home
+                        button(type='submit', class='btn btn-info', name='action', value='home')
+                            span(class="glyphicon glyphicon-home", aria-hidden="true")
 
 block script

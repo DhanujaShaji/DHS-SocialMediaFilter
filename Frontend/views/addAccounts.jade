@@ -13,7 +13,6 @@ block content
                                 th(style="text-align: center;") First Name
                                 th(style="text-align: center;") Role
                                 th(style="text-align: center;") Edit
-                                th(style="text-align: center;") Delete
                         tbody
                             if typeof(accounts) != "undefined"
                                 each account in accounts
@@ -21,12 +20,11 @@ block content
                                         td(style="vertical-align: middle;text-align: center;")= account['first']
                                         td(style="vertical-align: middle;text-align: center;")= account['last']
                                         td(style="vertical-align: middle;text-align: center;")= account['role']
-                                        td(style="vertical-align: middle;text-align: center;min-width: 0;")
-                                            button(type='button', class='btn btn-warning', name='action',
-                                            style="min-width: 0;margin: 0;", value='edit') Edit
                                         td(style="vertical-align: middle;text-align: center;")
                                             button(type='button', class='btn btn-danger', name='action',
-                                            style="min-width: 0;margin: 0;", value='delete') Delete
+                                            style="min-width: 0;margin: 0;",
+                                            onclick="window.location.href='addAccounts?action=delete&agentName=" +
+                                            account['first'] + "%20" + account['last'] + "';") Delete
                             tr
                                 td(style="vertical-align: middle;text-align: center;")
                                     input(type="text", name='first', style="max-width: 100%")
@@ -37,10 +35,9 @@ block content
                                 td(style="vertical-align: middle;text-align: center;min-width: 0;")
                                     button(type='submit', class='btn btn-yes', name='action',
                                     style="min-width: 0;margin: 0;", value='add') Add
-                                td(style="vertical-align: middle;text-align: center;")
-                                    button(type='submit', class='btn btn-yes', name='action',
-                                    style="min-width: 0;margin: 0;display: none;", value='edit') Add
                     div(class='f1-buttons')
-                        button(type='button',onclick="location.href='portal';", class='btn btn-submit', name='action', value='back') Back
+                        button(type='button',onclick="history.go(-1);", class='btn btn-submit',
+                        name='action', value='back')
+                            span(class="glyphicon glyphicon-home", aria-hidden="true")
 
 block script

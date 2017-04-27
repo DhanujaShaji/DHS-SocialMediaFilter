@@ -8,6 +8,8 @@ block content
                 fieldset
                     h4= info
                     div(class='f1-buttons')
-                        button(action='action', type='button', class='btn btn-submit', onclick='history.go(-1);') Back
+                        button(action='action', type='button', class='btn btn-submit',
+                        onclick="location.href=\'portal\'")
+                            span(class="glyphicon glyphicon-home", aria-hidden="true")
 
 block script
