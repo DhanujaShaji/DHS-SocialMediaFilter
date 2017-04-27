@@ -19,12 +19,10 @@ block content
                                         td= passcode['code']
                                         td= passcode['valid']
                     h4 Use/Distribute this code to access unfiltered Twitter content for a given account. This code will expire in 2 minutes.
-                    div(class='input-group')
-                        input(type='text', class='form-control', value=data["passcode"], id='snipsnip')
-                        span(class='input-group-btn')
-                            button(type='button', class='btn btn-secondary', style='margin:0;margin-left: -1px;height: 34px;color: #333;line-height: 0px;', data-clipboard-target='#snipsnip', id='snipper') Copy
+                    input(type='text', class='form-control', value=data["passcode"], id='snipsnip')
                     div(class="f1-buttons")
-                        button(type='submit', class='btn btn-submit', name='action', value='generate') Generate
-                        button(type='submit', class='btn btn-info', name='action', value='home') Home
+                        button(type='submit', class='btn btn-success', name='action', value='generate') Generate
+                        button(type='submit', class='btn btn-info', name='action', value='home')
+                            span(class="glyphicon glyphicon-home", aria-hidden="true")
 
 block script
