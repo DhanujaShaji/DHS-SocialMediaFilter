@@ -518,6 +518,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function(req, res, next) {
     var account = req.query.twitter;
     var userId = req.session.userId;
 
+    console.log("anonymized action:"+action);
    if (action === 'audit' && typeof(userId) !== 'undefined') {
         var dataSQL= "select tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
             "flags2tweets.degree, flag.flagContext " +
@@ -752,7 +753,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
     const lastName=req.query.last;
     const agentRole=req.query.role;
 
-    if(curAgentlevel !==SupervisorLevel){
+    if(curAgentlevel !== SupervisorLevel){
         res.render('error', {
             title: 'Unauthenticated Acces',
             message: 'Unauthenticated Access to page for superviser ',
