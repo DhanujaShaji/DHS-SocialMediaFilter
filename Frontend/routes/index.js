@@ -369,7 +369,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
     var decisionId = req.query.id; //cannot get decision Id from front end;
     // You can get decision id
-    // console.log(decisionId);
+    // console.log("decisionId: " + decisionId);
 
     if (action === 'review' && typeof(decisionId) !== 'undefined') {
         var decisionData = {};
@@ -400,7 +400,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                     'action': 'change decision'}
                 ]}
 
-            res.render('detail', {title: 'Decision Detail', data: decisionData});
+            res.render('detail', {title: 'Decision Detail', data: decisionData, 'decisionId': decisionId});
         });
     } else if (action === 'increase' && typeof(decisionId) !== 'undefined') {
         console.log("detail action increase:"+decisionId);
