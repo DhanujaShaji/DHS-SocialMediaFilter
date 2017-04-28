@@ -220,6 +220,7 @@ public class TwitterFilter {
 
     @SuppressWarnings("unchecked")
     public String checkPerson(String name) {
+    	
         TwitterFilter tf = new TwitterFilter();
         TwitterScraper tS = null;
         try {
@@ -278,8 +279,8 @@ public class TwitterFilter {
            while (rs.next()) {
               userId = rs.getInt("userId");
           }
-//           System.out.println(tweets);
-//           System.out.println(censorRes);
+          JSONArray a = (JSONArray)flagRes.get("flagedDetail");
+          JSONArray b = (JSONArray)flagRes.get("flaged");
            for(int i=0; i< censorRes.size(); i++){
                 resTweet = new StringBuilder();
                 resTweet.append("\"");
@@ -299,7 +300,18 @@ public class TwitterFilter {
                 String date = sdf.format(tweets.get(i).date);
                 resTweet.append(date);
                 resTweet.append("\""); 
-                statement.executeUpdate("INSERT INTO tweets(userId, tweetText, anonymizedText, postTime) " + "VALUES (" +  resTweet + ")");
+                int count = 0;
+                if(b.contains(tweets.get(i).tweet)){
+                    int k = b.indexOf(tweets.get(i).tweet);
+                    JSONObject obj = (JSONObject)a.get(k);
+                    count =  obj.size();
+                }
+                resTweet.append(",");
+                resTweet.append("\"");
+                resTweet.append(count);
+                resTweet.append("\"");
+                statement.executeUpdate("INSERT INTO tweets(userId, tweetText, anonymizedText, postTime, flagsCount) " + "VALUES (" +  resTweet + ")");
+                
            }
            for(int i=0; i< checkFriendsRes.size() ;i++){
                resFriends = new StringBuilder();
@@ -312,8 +324,7 @@ public class TwitterFilter {
                resFriends.append("\"");
                statement.executeUpdate("INSERT INTO follow(userId, followerName) " + "VALUES (" +  resFriends + ")");
            }
-          JSONArray a = (JSONArray)flagRes.get("flagedDetail");
-          JSONArray b = (JSONArray)flagRes.get("flaged");
+          
           StringBuilder resFlagDetail = new StringBuilder();
           StringBuilder  resFlags = new StringBuilder();
            for(int i=0; i< a.size(); i++){  
