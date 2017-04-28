@@ -18,6 +18,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -219,6 +220,25 @@ public class TwitterFilter {
 
     @SuppressWarnings("unchecked")
     public String checkPerson(String name) {
+    	Connection conn = null;
+        try
+        {
+           String url = "jdbc:mysql://104.197.6.255:3306/EPS";
+           Class.forName("com.mysql.jdbc.Driver");
+           conn = DriverManager.getConnection (url,"peuser","peuser");
+           System.out.println ("Database connection established");
+           Statement statement = conn.createStatement();
+           
+           ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
+            if(rs != null){
+           	System.out.println("USER EXISTS");
+           	System.exit(0);
+           }
+        }catch (Exception e)
+       {
+           e.printStackTrace();
+
+       }
         TwitterFilter tf = new TwitterFilter();
         TwitterScraper tS = null;
         try {
@@ -246,7 +266,7 @@ public class TwitterFilter {
         jo.put("checkFriendsRes", checkFriendsRes.toString());
         jo.put("censorRes", censorRes.toString());
         jo.put("flagRes", flagRes);
-System.out.println(checkFriendsRes.toString());
+        System.out.println(checkFriendsRes.toString());
         JSONArray detail = (JSONArray)flagRes.get("flagedDetail");
         for (int i = 0; i < detail.size(); i++) {
             JSONObject obj = (JSONObject) detail.get(i);
@@ -254,18 +274,15 @@ System.out.println(checkFriendsRes.toString());
         }
         
         int userId = 0;
-        Connection conn = null;
+        conn = null;
         try
         {
-           String url = "jdbc:mysql://104.197.6.255:3306/EPS";
-           Class.forName("com.mysql.jdbc.Driver");
-           conn = DriverManager.getConnection (url,"peuser","peuser");
-           System.out.println ("Database connection established");
            Statement statement = conn.createStatement();
-           StringBuilder resTweet= new StringBuilder();
+            StringBuilder resTweet= new StringBuilder();
            StringBuilder resFriends= new StringBuilder();
            statement.executeUpdate("INSERT INTO user(userName) " + "VALUES (" +  "\"" + name + "\"" + ")");
            ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
+           
            while (rs.next()) {
               userId = rs.getInt("userId");
           }
@@ -278,13 +295,19 @@ System.out.println(checkFriendsRes.toString());
                 resTweet.append("\"");
                 resTweet.append(",");
                 resTweet.append("\"");
-                resTweet.append(tweets.get(i)); 
+                resTweet.append(tweets.get(i).tweet); 
                 resTweet.append("\"");
                 resTweet.append(",");
                 resTweet.append("\"");
                 resTweet.append(censorRes.get(i));
-                resTweet.append("\"");        
-                statement.executeUpdate("INSERT INTO tweets(userId, tweetText, anonymizedText) " + "VALUES (" +  resTweet + ")");
+                resTweet.append("\""); 
+                resTweet.append(",");
+                resTweet.append("\"");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-dd-MM hh:mm:ss");
+                String date = sdf.format(tweets.get(i).date);
+                resTweet.append(date);
+                resTweet.append("\""); 
+                statement.executeUpdate("INSERT INTO tweets(userId, tweetText, anonymizedText, postTime) " + "VALUES (" +  resTweet + ")");
            }
            for(int i=0; i< checkFriendsRes.size() ;i++){
                resFriends = new StringBuilder();
