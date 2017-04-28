@@ -220,25 +220,6 @@ public class TwitterFilter {
 
     @SuppressWarnings("unchecked")
     public String checkPerson(String name) {
-    	Connection conn = null;
-        try
-        {
-           String url = "jdbc:mysql://104.197.6.255:3306/EPS";
-           Class.forName("com.mysql.jdbc.Driver");
-           conn = DriverManager.getConnection (url,"peuser","peuser");
-           System.out.println ("Database connection established");
-           Statement statement = conn.createStatement();
-           
-           ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
-            if(rs != null){
-           	System.out.println("USER EXISTS");
-           	System.exit(0);
-           }
-        }catch (Exception e)
-       {
-           e.printStackTrace();
-
-       }
         TwitterFilter tf = new TwitterFilter();
         TwitterScraper tS = null;
         try {
@@ -274,14 +255,25 @@ public class TwitterFilter {
         }
         
         int userId = 0;
-        conn = null;
+        Connection conn = null;
         try
         {
+           String url = "jdbc:mysql://104.197.6.255:3306/EPS";
+           Class.forName("com.mysql.jdbc.Driver");
+           conn = DriverManager.getConnection (url,"peuser","peuser");
+           System.out.println ("Database connection established");
            Statement statement = conn.createStatement();
-            StringBuilder resTweet= new StringBuilder();
+           
+           ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
+            if(rs.next()) {
+           	System.out.println("USER EXISTS");
+           	System.exit(0);
+           }
+
+           StringBuilder resTweet= new StringBuilder();
            StringBuilder resFriends= new StringBuilder();
            statement.executeUpdate("INSERT INTO user(userName) " + "VALUES (" +  "\"" + name + "\"" + ")");
-           ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
+           rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
            
            while (rs.next()) {
               userId = rs.getInt("userId");
@@ -303,7 +295,7 @@ public class TwitterFilter {
                 resTweet.append("\""); 
                 resTweet.append(",");
                 resTweet.append("\"");
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-dd-MM hh:mm:ss");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 String date = sdf.format(tweets.get(i).date);
                 resTweet.append(date);
                 resTweet.append("\""); 
