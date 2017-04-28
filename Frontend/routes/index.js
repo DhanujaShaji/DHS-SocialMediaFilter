@@ -825,9 +825,17 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
     const action = req.query.action;
     const curAgentlevel = req.session.level;
     const curAgentAccount = req.session.agentName;
-    const firstName=req.query.first.trim();
-    const lastName=req.query.last.trim();
+    var firstName=req.query.first;
+    var lastName=req.query.last;
     const agentRole=req.query.role;
+
+    // dealing with trailing and leading space
+    if(firstName!==undefined&&firstName!==null){
+        firstName=firstName.trim();
+    }
+    if(lastName!==undefined&&lastName!==null){
+        lastName=lastName.trim();
+    }
 
     if(curAgentlevel !== SupervisorLevel){
         res.render('error', {
