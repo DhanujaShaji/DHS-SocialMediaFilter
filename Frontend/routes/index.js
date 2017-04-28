@@ -445,7 +445,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                         'action':'change decision'
                     })
                 }
-                res.render('detail', {title: 'Decision Detail', data: decisionData});
+                res.render('detail', {title: 'Decision Detail', data: decisionData, 'decisionId': decisionId});
             });
         });
     } else if (action === 'increase' && typeof(decisionId) !== 'undefined') {
