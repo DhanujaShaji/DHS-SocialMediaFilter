@@ -273,7 +273,6 @@ router.get('/portal',checkSignIn, function (req, res, next) {
             info: 'Search tweets with keyword \'' + keyword + '\'.'
         });
     } else {
-        // TODO: get login user name or first name + last name
         var data = {"name": 'user'};
         res.render('portal', {title: 'Welcome ' + 'user', data: data});
     }
@@ -826,8 +825,8 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
     const action = req.query.action;
     const curAgentlevel = req.session.level;
     const curAgentAccount = req.session.agentName;
-    const firstName=req.query.first;
-    const lastName=req.query.last;
+    const firstName=req.query.first.trim();
+    const lastName=req.query.last.trim();
     const agentRole=req.query.role;
 
     if(curAgentlevel !== SupervisorLevel){
