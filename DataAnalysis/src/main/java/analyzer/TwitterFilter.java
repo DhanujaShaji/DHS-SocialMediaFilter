@@ -19,6 +19,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import java.sql.*;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class TwitterFilter {
     private static final String FLAGGED_WORDS = "Flagged.txt";
@@ -58,28 +60,63 @@ public class TwitterFilter {
      * 
      */
     @SuppressWarnings("unchecked")
-    public JSONObject checkTweets(List<String> tweets) {
+    public JSONObject checkTweets(List<TweetDetails> tweets) {
         JSONArray flaged = new JSONArray();
         JSONArray flaggedDetail = new JSONArray();
         
-//        System.out.println(tweets.toString());
-        for (String twitt : tweets) {
+        for (TweetDetails twitt : tweets) {
             boolean flagged = false;
             JSONObject detail = new JSONObject();
 
             for (String flag : flags) {
-                if (twitt.indexOf(flag) != -1) {
+                if (twitt.tweet.indexOf(flag) != -1) {
                     flagged = true;
-                    detail.put(flag, getFlaggedDetail(twitt, flag));
+                    detail.put(flag, getFlaggedDetail(twitt.tweet, flag));
                 }
             }
 
             if (flagged) {
-                flaged.add(twitt);
+//                flaged.add(twitt);
+                detail.put("twitter", twitt);
                 flaggedDetail.add(detail);
             }
         }
         JSONObject res = new JSONObject();
+        Collections.sort(flaggedDetail, new Comparator<Object>() {
+            @Override
+            public int compare(Object o1, Object o2) {
+                JSONObject obj1 = (JSONObject)o1;
+                JSONObject obj2 = (JSONObject)o2;
+                TweetDetails twitter1 = (TweetDetails)obj1.get("twitter");
+                TweetDetails twitter2 = (TweetDetails)obj2.get("twitter");
+                int num1 = 0;
+                int num2 = 0;
+                for (Object key : obj1.keySet()) {
+                    System.out.println(key.toString());
+                    if(key.equals("twitter")) continue;
+                    JSONArray arr = (JSONArray)obj1.get((String)key);
+                    num1 += arr.size();
+                }
+                for (Object key : obj2.keySet()) {
+                    System.out.println(key.toString());
+                    if(key.equals("twitter")) continue;
+                    JSONArray arr = (JSONArray)obj2.get((String)key);
+                    num2 += arr.size();
+                }
+                if (num2 != num1)
+                	return num2 - num1;
+                else 
+                	return twitter2.date.compareTo(twitter1.date);
+            }
+        });
+        
+        for (Object obj : flaggedDetail) {
+            JSONObject jo = (JSONObject)obj;
+            TweetDetails twitt = (TweetDetails)jo.get("twitter");
+            flaged.add(twitt.tweet);
+            jo.remove("twitter");
+        }
+        
         res.put("flaged", flaged);
         res.put("flagedDetail", flaggedDetail);
 
@@ -135,11 +172,11 @@ public class TwitterFilter {
         }
     }
 
-    private List<String> censorTweets(List<String> tweets) {
+    private List<String> censorTweets(List<TweetDetails> tweets) {
         List<String> res = new ArrayList<>();
         for (int i = 0; i < tweets.size(); i++) {
-            String twitt = tweets.get(i);
-            String censoredTwitt = new String(twitt);
+        	TweetDetails twitt = tweets.get(i);
+            String censoredTwitt = new String(twitt.tweet);
 
             for (String censorStr : censorWords) {
                 if (censoredTwitt.indexOf(censorStr) != -1) {
@@ -189,8 +226,10 @@ public class TwitterFilter {
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
         }
-        List<String> tweets = new ArrayList<>();
+        List<TweetDetails> tweets = new ArrayList<>();
         tweets = tS.getTweet();
+        Collections.sort(tweets);
+        System.out.println(tweets.toString());
         // ***All tweets after censor (change sensitive words to ***)
         List<String> censorRes = tf.censorTweets(tweets);
         // ***All twitts that contains flags, and detail about positions of
@@ -207,7 +246,7 @@ public class TwitterFilter {
         jo.put("checkFriendsRes", checkFriendsRes.toString());
         jo.put("censorRes", censorRes.toString());
         jo.put("flagRes", flagRes);
-        
+System.out.println(checkFriendsRes.toString());
         JSONArray detail = (JSONArray)flagRes.get("flagedDetail");
         for (int i = 0; i < detail.size(); i++) {
             JSONObject obj = (JSONObject) detail.get(i);
