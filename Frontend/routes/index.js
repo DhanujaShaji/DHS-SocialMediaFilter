@@ -8,7 +8,7 @@ var conn = null;
 var SupervisorLevel = 3; //Supervisor level
 const defaultExpiringPeriod=15; //15 days, expireation time for a decision.
 const defaultIncresePeriod=30; //30 days, increase time for a decision when choose to increase the expire time.
-const pageLimit=8; //limitation for number of tweets to be displayed on each page.
+const pageLimit=15; //limitation for number of tweets to be displayed on each page.
 const saltRounds = 10; // the number of rounds to be hashed.
 const timeSetting='0 0 5 * * *' //5:00 AM of each day.
 const testTimeSetting='0 * * * * *'; //0s of each miniue.
@@ -461,12 +461,12 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             increasedTime.setDate(expireTime.getDate()+defaultIncresePeriod);
             conn.query(increseRetentionSQL, [increasedTime, decisionId], function (err, result) {
                 console.log("increase retention success!");
-                res.redirect('portal');
+                res.redirect('detail');
             });
         });
     } else if (action === 'changeDecision' && typeof(decisionId) !== 'undefined') {
         const changeOriDecision='update decision set valid = 0 where decisionId = ? && valid = 1';
-        const getDecision='select * from decision where decisionId = ? && valid = 1';
+        const getDecision='select * from decision where decisionId = ?';
         const addNewDecision="insert into decision(decisionId, userId,agentId,value,decisionTime,expireTime) values(?,?,?,?,?,?)";
         const addLog='insert into decisionChangeLog(oriDecisionId , newDecisionId ) values(?,?)';
 
@@ -475,9 +475,10 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                 console.log("change decision result:" + result);
             }
         });
+
         conn.query(getDecision, [decisionId], function (err, result) {
             if(result.length!==1){
-                console.log("get more than 1 decision result:" + result);
+                console.log("get more than 1 decision result length:" + result.length);
             }
             var newDecisionId = decisionId + 1000;
             var newDecision = !result[0]['value'];
@@ -487,9 +488,9 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             conn.query(addNewDecision,[newDecisionId,result[0]['userId'], result[0]['agentId'], newDecision, decisionTime, expireTime],
                 function (err, result)
             {
-                dealwithInternalError(err,res);
+                dealwithInternalError(res,err);
                 conn.query(addLog,[decisionId, newDecisionId],function (err, res) {
-                    dealwithInternalError(err,res);
+                    dealwithInternalError(res,err);
                     res.redirect('review');
                 })
             })
