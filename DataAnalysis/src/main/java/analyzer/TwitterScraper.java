@@ -41,6 +41,8 @@ public class TwitterScraper {
       .setOAuthAccessTokenSecret(TWITTER_ACCESS_TOKEN_SECRET);
     TwitterFactory tf = new TwitterFactory(cb.build());
     Twitter twitter = tf.getInstance();
+    tweet = new ArrayList<TweetDetails>();
+    friends = new ArrayList<String>();
     System.out.println("done!");
     try {
             List<Status> tweets = twitter.getUserTimeline(ID);
