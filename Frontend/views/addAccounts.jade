@@ -28,20 +28,23 @@ block content
                     table(class="table table-striped table-responsive", style="table-layout: fixed;")
                         thead
                             tr
-                                th(style="text-align: center;") Username
+                                th(style="text-align: center;") FirstName
+                                th(style="text-align: center;") LastName
                                 th(style="text-align: center;") Password
                                 th(style="text-align: center;") Role
                                 th(style="text-align: center;") Edit
                         tbody
                             tr
                                 td(style="vertical-align: middle;text-align: center;")
-                                    input(type="text", name='username', style="max-width: 100%")
+                                    input(type="text", name='firstName', style="max-width: 100%")
+                                td(style="vertical-align: middle;text-align: center;")
+                                    input(type="text", name='lastName', style="max-width: 100%")
                                 td(style="vertical-align: middle;text-align: center;")
                                     input(type="password", name='password', style="max-width: 100%")
                                 td(style="vertical-align: middle;text-align: center;")
                                     select(name="role", class="form-control", style="max-width: 100%")
-                                        option(value="agent") Agent
-                                        option(value="supervisor") Supervisor
+                                        option(value="Agent") Agent
+                                        option(value="Supervisor") Supervisor
                                 td(style="vertical-align: middle;text-align: center;min-width: 0;")
                                     button(type='submit', class='btn btn-yes', name='action',
                                     style="min-width: 0;margin: 0;", value='add') Add

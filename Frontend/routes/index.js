@@ -826,9 +826,11 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
     const action = req.query.action;
     const curAgentlevel = req.session.level;
     const curAgentAccount = req.session.agentName;
-    var firstName=req.query.first;
-    var lastName=req.query.last;
+    var firstName=req.query.firstName;
+    var lastName=req.query.lastName;
+    var password=req.query.password;
     const agentRole=req.query.role;
+    console.log("Username: " + firstName + "_" + lastName + ", Password: " + password + ", role: " + agentRole);
 
     // dealing with trailing and leading space
     if(firstName!==undefined&&firstName!==null){
@@ -871,15 +873,20 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
         }
 
         const agentName=firstName+' '+lastName;
-        var agentAccount=agentName.toLowerCase();
+        var agentAccount=agentName;
         agentAccount=agentAccount.replace(' ','_');
-        var agentPassword=agentAccount;
+        var agentPassword=password;
         const addAgentAccountSQL='insert into Agent(agentName,level,account,password) values(?,?,?,?)';
 
         bcrypt.hash(agentPassword, saltRounds, function(err, hash) {
             conn.query(addAgentAccountSQL,[agentName,agentLevel,agentAccount,hash],function (err, result) {
                 dealwithInternalError(res,err);
-                res.redirect('addAccounts');
+                // res.redirect('addAccounts');
+                res.render('info', {
+                    title: 'Account is created',
+                    message: 'Account is created',
+                    info: 'Your username is "' + agentAccount + '".'
+                });
             });
         });
 
