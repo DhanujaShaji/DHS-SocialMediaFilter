@@ -884,7 +884,7 @@ router.get('/addAccounts',checkSignIn, connectToDB, function(req, res, next) {
                 res.render('info', {
                     title: 'Account is created',
                     message: 'Account is created',
-                    info: 'You have successfully created a new account. The username is ' + agentAccount + "."
+                    info: 'Your username is "' + agentAccount + '".'
                 });
             });
         });
