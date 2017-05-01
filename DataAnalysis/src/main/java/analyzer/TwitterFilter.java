@@ -270,17 +270,32 @@ public class TwitterFilter {
            	System.out.println("USER EXISTS");
            	System.exit(0);
            }
+           int blacklistCount = checkFriendsRes.size();
+           JSONArray a = (JSONArray)flagRes.get("flagedDetail");
+           JSONArray b = (JSONArray)flagRes.get("flaged");
 
            StringBuilder resTweet= new StringBuilder();
            StringBuilder resFriends= new StringBuilder();
-           statement.executeUpdate("INSERT INTO user(userName) " + "VALUES (" +  "\"" + name + "\"" + ")");
+           StringBuilder resUser = new StringBuilder();
+           resUser.append("\"");
+           resUser.append(name);
+           resUser.append("\"");
+           resUser.append(",");
+           resUser.append("\"");
+           resUser.append(a.size()); 
+           resUser.append("\"");
+           resUser.append(",");
+           resUser.append("\"");
+           resUser.append(blacklistCount);
+           resUser.append("\""); 
+
+           statement.executeUpdate("INSERT INTO user(userName, flagTweetCount, blacklistCount) " + "VALUES (" + resUser +  ")");
            rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
            
            while (rs.next()) {
               userId = rs.getInt("userId");
           }
-          JSONArray a = (JSONArray)flagRes.get("flagedDetail");
-          JSONArray b = (JSONArray)flagRes.get("flaged");
+          
            for(int i=0; i< censorRes.size(); i++){
                 resTweet = new StringBuilder();
                 resTweet.append("\"");
