@@ -780,7 +780,6 @@ router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
             "where userId = ?;";
         conn.query(dataSQL, [userId], function (err, result) {
             var data = [];
-            //console.log("result is:",result);
             for (var index in result) {
                 if (index > pageLimit) {
                     break;
@@ -789,8 +788,8 @@ router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
                 var comment;
                 //fixed null value for tweetDate
                 var tweetDate = null;
-                if (result[index].postTime !== null) {
-                    tweetDate = result[index].postTime.toLocaleDateString();
+                if (result[index]['postTime'] !== null) {
+                    tweetDate = result[index]['postTime'].toLocaleDateString();
                 } else {
                     tweetDate = "null";
                 }
