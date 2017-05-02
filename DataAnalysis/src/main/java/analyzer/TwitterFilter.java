@@ -266,9 +266,10 @@ public class TwitterFilter {
            Statement statement = conn.createStatement();
            
            ResultSet rs = statement.executeQuery("SELECT userId  FROM user WHERE userName = "+ "\'" + name + "\'");
-            if(rs.next()) {
-           	System.out.println("USER EXISTS");
-           	System.exit(0);
+             if(rs.next()) {
+            String str1 ="USER EXISTS";
+           	System.out.println(str1);
+           	return str1;
            }
            int blacklistCount = checkFriendsRes.size();
            JSONArray a = (JSONArray)flagRes.get("flagedDetail");
@@ -371,7 +372,7 @@ public class TwitterFilter {
                 	for (Object posObj : values) {
                 		//this is one position.
                 		int pos = (Integer)posObj;
-                		int k =2;
+                		int k =1;
                 		resFlagDetail.append("\"");
                 		resFlagDetail.append(tweetId);
                 		resFlagDetail.append("\"");
