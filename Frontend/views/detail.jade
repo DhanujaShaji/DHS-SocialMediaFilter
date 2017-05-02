@@ -11,26 +11,29 @@ block content
                     p Agent: #{data['agent']}
                     p Expiration: #{data['expiration']}
                     div(class="collapse" id="tweets")
+                        hr
                         h4 Tweet Information
-                            each tweet in data['tweets']
-                                div(class="panel panel-#{tweet['type']}")
-                                    div(class='panel-heading') Sending Date: #{tweet['date']}
-                                    div(class='panel-body')
-                                        each item in tweet['content']
-                                            if item['type'] == 'text'
-                                                |  #{item['content']}
-                                            else if item['type'] == 'keyword'
-                                                |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reasonTitle']}", data-content="#{item['reasonContent']}") #{item['content']}]
-                                            else if item['type'] == 'at'
-                                                a  #{item['content']}
-                                            else if item['type'] == 'tag'
-                                                a  #{item['content']}
-                    h4 Decision History
-                        each decision in data['history']
-                            div(class="panel panel-primary")
-                                div(class='panel-heading') Change Date: #{decision['date']}
+                        each tweet in data['tweets']
+                            div(class="panel panel-#{tweet['type']}")
+                                div(class='panel-heading') Sending Date: #{tweet['date']}
                                 div(class='panel-body')
-                                    p=decision['agent'] + ": " + decision['action']
+                                    each item in tweet['content']
+                                        if item['type'] == 'text'
+                                            |  #{item['content']}
+                                        else if item['type'] == 'keyword'
+                                            |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reasonTitle']}", data-content="#{item['reasonContent']}") #{item['content']}]
+                                        else if item['type'] == 'at'
+                                            a  #{item['content']}
+                                        else if item['type'] == 'tag'
+                                            a  #{item['content']}
+                    hr
+                    h4 Decision History
+                    each decision in data['history']
+                        div(class="panel panel-primary")
+                            div(class='panel-heading') Change Date: #{decision['date']}
+                            div(class='panel-body')
+                                p=decision['agent'] + ": " + decision['action']
+                    hr
                     div(class='f1-buttons')
                         input(type="hidden" name="id" value=decisionId)
                         button(class='btn btn-primary' type="button" data-toggle="collapse" data-target="#tweets"

@@ -42,24 +42,24 @@ block content
                         p(class='hidden-xs') Make a Decision
                 fieldset
                     h4 Original Tweets:
-                        each tweet in data
-                            div(class="panel panel-#{tweet['type']}")
-                                div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
-                                div(class='panel-body')
-                                    each item in tweet['content']
-                                        if item['type'] == 'text'
-                                            |  #{item['content']}
-                                        else if item['type'] == 'keyword'
-                                            |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reason-title']}", data-content="#{item['reason-content']}") #{item['content']}]
-                                        else if item['type'] == 'at'
-                                            a  #{item['content']}
-                                        else if item['type'] == 'tag'
-                                            a  #{item['content']}
-                        div(class='f1-buttons')
-                            input(type='hidden', name='twitter', value=account)
-                            button(type='submit', class='btn btn-yes', name='action', value='submit') Make a Decision
-                            button(type='submit', class='btn btn-info', name='action', value='home')
-                                span(class="glyphicon glyphicon-home", aria-hidden="true")
+                    each tweet in data
+                        div(class="panel panel-#{tweet['type']}")
+                            div(class='panel-heading') Sending Date: #{tweet['date']} #{tweet['comment']}
+                            div(class='panel-body')
+                                each item in tweet['content']
+                                    if item['type'] == 'text'
+                                        |  #{item['content']}
+                                    else if item['type'] == 'keyword'
+                                        |  #[a(class="btn btn-#{item['level']} btn-xs", data-toggle="popover", role="button", data-trigger="focus", tabindex="0", data-placement="bottom", title="#{item['reason-title']}", data-content="#{item['reason-content']}") #{item['content']}]
+                                    else if item['type'] == 'at'
+                                        a  #{item['content']}
+                                    else if item['type'] == 'tag'
+                                        a  #{item['content']}
+                    div(class='f1-buttons')
+                        input(type='hidden', name='twitter', value=account)
+                        button(type='submit', class='btn btn-yes', name='action', value='submit') Make a Decision
+                        button(type='submit', class='btn btn-info', name='action', value='home')
+                            span(class="glyphicon glyphicon-home", aria-hidden="true")
 
 block script
     script.
