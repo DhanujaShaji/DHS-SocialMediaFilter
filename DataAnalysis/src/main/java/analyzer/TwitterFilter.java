@@ -1,5 +1,3 @@
-package analyzer;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -361,15 +359,7 @@ public class TwitterFilter {
                 while (rs2.next()) {
                    tweetId = rs2.getInt("tweetId");
                 }
-               resFlagDetail.append("\"");
-                resFlagDetail.append(tweetId);
-                resFlagDetail.append("\"");
-                resFlagDetail.append(",");
-                resFlagDetail.append("\"");
-                resFlagDetail.append(flagId);
-                resFlagDetail.append("\"");
-                resFlagDetail.append(",");
-                resFlagDetail.append("\"");
+               
                for (Object obj : r.keySet()) {
                 	//this is the word
                 	String key = (String) obj;
@@ -379,9 +369,24 @@ public class TwitterFilter {
                 	for (Object posObj : values) {
                 		//this is one position.
                 		int pos = (Integer)posObj;
+                		int k =2;
+                		resFlagDetail.append("\"");
+                		resFlagDetail.append(tweetId);
+                		resFlagDetail.append("\"");
+                		resFlagDetail.append(",");
+                		resFlagDetail.append("\"");
+                		resFlagDetail.append(flagId);
+                		resFlagDetail.append("\"");
+                		resFlagDetail.append(",");
+                		resFlagDetail.append("\"");
                         resFlagDetail.append(pos);
                         resFlagDetail.append("\"");
-                        statement.executeUpdate("INSERT INTO flags2tweets(tweetId, flagId, indices) " + "VALUES (" +  resFlagDetail + ")");
+                        resFlagDetail.append(",");
+                		resFlagDetail.append("\"");
+                        resFlagDetail.append(k);
+                        resFlagDetail.append("\"");
+
+                        statement.executeUpdate("INSERT INTO flags2tweets(tweetId, flagId, indices, degree) " + "VALUES (" +  resFlagDetail + ")");
                 		System.out.println(pos);
                 	}
                 	
