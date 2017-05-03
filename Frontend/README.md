@@ -30,17 +30,17 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 
 ## Major Work
 
-- Component Integration
+### Component Integration
  - Render frontend page
  - Manage database
  - Control the work of IntegratedDataScraping+Analysis component
 
-- Database
+### Database
  - Create a database that supplies the structure and communications between parts.
  - Manage the database to support of other components,like DataScraping+Analysis component.
  - Deploy it in Google Cloud platform so everyone can access it.
 
-- Server frontend pages:
+### Server frontend pages:
  - Retrieve data from database and then render the frontend pages requested by user using the data retrieved(14 pages in total).
  - Get input data from user and store the data into database (14 pages in total).
  - Send and receive http request to DataScraping+Analysis component to control the work of that component.
@@ -49,7 +49,7 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
  - Scheduling job to automatically delete data in database which has expired.
  - Passes and processes information to and from the frontend successfully.
 
-- Major third module used in backend
+### Major third module used in backend
  - express, mysqljs, express-session, request, bcrypt, node-schedule, async.
 
 ## File structure
