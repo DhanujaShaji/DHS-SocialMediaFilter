@@ -405,7 +405,7 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
         if (agentLevel == SupervisorLevel) {
             const previousDecisionsSQL = "select decisionId, decisionTime, userName, agentName " +
                 "from decision, user, Agent where decision.userId = user.userId &&" +
-                " decision.agentId = Agent.agentId";
+                " decision.agentId = Agent.agentId && decision.valid = 1";
             conn.query(previousDecisionsSQL, function (err, result) {
                 if (result.length !== 0) {
                     var previousDecisions = [];
@@ -428,7 +428,7 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
         } else {
             const previousDecisionsSQL2 = "select decisionId, decisionTime, userName, agentName " +
                 "from decision, user, Agent where decision.userId = user.userId &&" +
-                " decision.agentId = Agent.agentId && Agent.agentId = ?";
+                " decision.agentId = Agent.agentId && Agent.agentId = ? && decision.valid = 1";
             conn.query(previousDecisionsSQL2, [agentId], function (err, result) {
                 var previousDecisions = [];
                 for (var index in result) {
@@ -472,7 +472,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
         const getOtherDecisionSQL = 'select decisionId, agentName, decisionTime, valid ' +
             'from decision inner join user on(decision.userId = user.userId) ' +
             'inner join Agent on(decision.agentId = Agent.agentId) ' +
-            'where user.userName = ? && decision.decisionId != ?';
+            'where user.userName = ? && decision.decisionId != ? && decision.valid = 0';
         conn.query(getDecisionSQL, [decisionId], function (err, result) {
             if(err){
                 console.log(err);
@@ -690,8 +690,16 @@ router.get('/report', checkSignIn, function (req, res, next) {
         console.log(options.uri);
 
         request(options, function (error, response, body) {
-            if (error || response.statusCode == 200) {
+            if (error || response.statusCode != 200) {
                 console.log(error);
+                res.render('error', {
+                    title: 'User Not Found',
+                    message: 'User Not Found',
+                    info: 'The Twitter handle entered could not be found. Please verify the spelling or search for' +
+                    ' the account on the Twitter website using either name or email of the registered account' +
+                    ' before proceeding.'
+                });
+                return ;
             }
 
             const sql = 'select userId, flagTweetCount, blacklistCount from user where userName = ?';
@@ -706,6 +714,7 @@ router.get('/report', checkSignIn, function (req, res, next) {
                         ' the account on the Twitter website using either name or email of the registered account' +
                         ' before proceeding.'
                     });
+                    return ;
                 }
                 req.session.userId = result[0].userId;
                 console.log("userId:", result[0].userId);
@@ -1062,20 +1071,32 @@ router.get('/addAccounts', checkSignIn, connectToDB, function (req, res, next) {
 
         const agentName = firstName + ' ' + lastName;
         var agentAccount = agentName;
-        agentAccount = agentAccount.replace(' ', '_');
+        agentAccount = agentAccount.replace(' ', '_').toLowerCase();
         var agentPassword = password;
         const addAgentAccountSQL = 'insert into Agent(agentName,level,account,password) values(?,?,?,?)';
+        const checkExistSQL = 'select * from Agent where account = ?';
 
         bcrypt.hash(agentPassword, saltRounds, function (err, hash) {
-            conn.query(addAgentAccountSQL, [agentName, agentLevel, agentAccount, hash], function (err, result) {
-                dealwithInternalError(res, err);
-                // res.redirect('addAccounts');
-                res.render('info', {
-                    title: 'Account is created',
-                    message: 'Account is created',
-                    info: 'Your username is "' + agentAccount + '".'
+            conn.query(checkExistSQL, [agentAccount], function (err, result) {
+                if(result !== undefined && result.length !== 0){
+                    res.render('info', {
+                        title: 'Account is already exists',
+                        message: 'Account has already exists',
+                        info: 'Account has already exists, please check the name again'
+                    });
+                    return;
+                }
+                conn.query(addAgentAccountSQL, [agentName, agentLevel, agentAccount, hash], function (err, result) {
+                    dealwithInternalError(res, err);
+                    // res.redirect('addAccounts');
+                    res.render('info', {
+                        title: 'Account is created',
+                        message: 'Account is created',
+                        info: 'Your username is "' + agentAccount + '".'
+                    });
                 });
             });
+
         });
 
     } else if (action === 'home') {
