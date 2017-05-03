@@ -32,10 +32,38 @@ The frontend folder contains the user interface for the DHS agents. It allows DH
 
 ## Backend
 
-- Database that supplies the structure and communcations between parts
-- Main functionality includes:
- - storing information from analyzer
- - passes and processes information to and from the frontend successfully (each page in the frontend has a corresponding functionality from the backend)
+### Major Work
+
+- Component Integration
+ - Render frontend page
+ - Manage database
+ - Control the work of IntegratedDataScraping+Analysis conponent 
+
+- Database
+ - Create a database that supplies the structure and communications between parts.
+ - Manage the database to support of other components,like DataScraping+Analysis conponent.
+ - Deploy it in Google Cloud platform so everyone can access it.
+
+- Servering frontend page:
+ - Retrieve data from database and then reder the frontend pages requested by user using the data retrieved(14 pages in total).
+ - Get input data from user and store the data into database (14 pages in total).
+ - Send and receive http request to DataScraping+Analysis conpenent to control the work of that conpenent.
+ - User login and access control. Store salted passwords and use session instead of cookie to store the state of a user.
+ - Passcode management. generate passcode and delete passcode which has expired.
+ - Scheduling job to automitically delete data in database which has expired.
+ - Passes and processes information to and from the frontend successfully.
+
+- Major third module used in backend
+ - express, mysqljs, express-session, request, bcrypt, node-schedule, async.
+
+ ### File structure
+
+ - routes/index.js, nearly all of the works menthioned are finished within this file.
+ - app.js, setting the environment and global variables of this application
+ - db.js, interface used to connect to database.
+ - Query, sql statement used to create tables of database.
+ - Database_scheme.png, the database scheme.
+ - package.json, meta data and dependencies of this application.
 
 ## Censored, Blacklisted and flagged terms 
  - Censored terms came from the sensitive information detailed in the project requirements - Censored.txt

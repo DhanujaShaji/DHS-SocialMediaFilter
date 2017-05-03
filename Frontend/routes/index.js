@@ -464,7 +464,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             'from decision inner join user on(decision.userId = user.userId) ' +
             'inner join Agent on(decision.agentId = Agent.agentId) ' +
             'where decision.decisionId = ?';
-        const dataSQL = "select tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
+        const dataSQL = "select tweets.tweetText, tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
             "flags2tweets.degree, flag.flagContext " +
             "from tweets left join flags2tweets on (tweets.tweetId = flags2tweets.tweetId) " +
             "left join flag on (flags2tweets.flagId = flag.flagId) " +
@@ -516,7 +516,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                                 comment = '(uncertain)';
                                 break;
                         }
-                        var content = dealWithContent(dataResult[index].anonymizedText,
+                        var content = dealWithContent(dataResult[index].tweetText,
                             dataResult[index].indices,
                             dataResult[index].flagContext,
                             degreeType
@@ -773,7 +773,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
     var userId = req.session.userId;
 
     if (action === 'audit' && typeof(userId) !== 'undefined') {
-        var dataSQL = "select tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
+        var dataSQL = "select tweets.tweetText, tweets.anonymizedText, tweets.postTime, flags2tweets.indices, " +
             "flags2tweets.degree, flag.flagContext " +
             "from tweets left join flags2tweets on (tweets.tweetId = flags2tweets.tweetId) " +
             "left join flag on (flags2tweets.flagId = flag.flagId) " +
@@ -804,7 +804,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
                             comment = '(uncertain)';
                             break;
                     }
-                    var content = dealWithContent(result[index].anonymizedText,
+                    var content = dealWithContent(result[index].tweetText,
                         result[index].indices,
                         result[index].flagContext,
                         degreeType
