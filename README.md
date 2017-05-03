@@ -2,6 +2,19 @@
 
 08-605 Engineering Privacy Team Project
 
+## Current Status: 
+
+Currently, the tool is able to login as well as successfully create a login identity which includes a user name and a password as well as an authority level of either agent or supervisor - this is located in "Manage Accounts". A supervisor may also deactivate a user. Additionally, the process for generating a passcode in order to view unfiltered data is complete, as well as the ability to modify past decisions - including increasing retention time, changing the decision from pass to fail and vice versa, and pulling up the flagged tweets from that decision. 
+
+The process for screening a traveler is complete, and the agent can input a Twitter handle, see a statistical analysis of the person's tweets, and choose to proceed with the process, or make a decision. If they do proceed, they can see a list of tweets, with flagged tweets at the top and sensitive information contained within the tweets will not be visible. In order to see unfiltered tweets, the agent must input a password. Once they do, they can see all the tweets with no filters. Finally, the agent can make a decision, which will be stored, along with the person's flagged tweets and Twitter handle. 
+
+Current bugs: 
+- The tool struggles to pull the tweets for many handles - server issues? 
+- The tool cannot handle emojis within tweets 
+- API limitation - currently set at 20 tweets for demo purposes
+- The flagged tweets are still being filtered 
+- Navigation in the Administration panel is a bit unintuitive
+
 ## Components
 
 - Frontend (User Interface)
