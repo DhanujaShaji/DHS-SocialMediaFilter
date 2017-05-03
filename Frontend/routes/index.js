@@ -726,11 +726,11 @@ router.get('/report', checkSignIn, function (req, res, next) {
                     var reportString1 = 'Number of flagged tweets: ' + flagTweetCount;
                     var reportString2 = 'Percentage of flagged tweets among all tweets: '
                         + toPercentage(flagTweetCount / defaultMaxiumTweetsCount);
-                    var reportString3 = 'Average number of flagged tweets among all traveler: ' + averageCount;
-                    var reportString4 = 'Average percentage of flagged tweets among all traveler: '
+                    var reportString3 = 'Average number of flagged tweets among all travelers: ' + averageCount;
+                    var reportString4 = 'Average percentage of flagged tweets among all travelers: '
                         + toPercentage(averageCount / defaultMaxiumTweetsCount);
                     var reportString5 = 'Number of blacklisted entities followed: ' + blacklistCount;
-                    var reportString6 = 'Average Number of blacklisted entities followed among all traveler: ' + averageBlacklist;
+                    var reportString6 = 'Average Number of blacklisted entities followed among all travelers: ' + averageBlacklist;
                     data = [
                         {
                             'title': 'Flagged Tweets:', 'content': [
