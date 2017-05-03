@@ -33,20 +33,20 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 - Component Integration
  - Render frontend page
  - Manage database
- - Control the work of IntegratedDataScraping+Analysis conponent 
+ - Control the work of IntegratedDataScraping+Analysis component
 
 - Database
  - Create a database that supplies the structure and communications between parts.
- - Manage the database to support of other components,like DataScraping+Analysis conponent.
+ - Manage the database to support of other components,like DataScraping+Analysis component.
  - Deploy it in Google Cloud platform so everyone can access it.
 
-- Servering frontend page:
- - Retrieve data from database and then reder the frontend pages requested by user using the data retrieved(14 pages in total).
+- Server frontend pages:
+ - Retrieve data from database and then render the frontend pages requested by user using the data retrieved(14 pages in total).
  - Get input data from user and store the data into database (14 pages in total).
- - Send and receive http request to DataScraping+Analysis conpenent to control the work of that conpenent.
+ - Send and receive http request to DataScraping+Analysis component to control the work of that component.
  - User login and access control. Store salted passwords and use session instead of cookie to store the state of a user.
  - Passcode management. generate passcode and delete passcode which has expired.
- - Scheduling job to automitically delete data in database which has expired.
+ - Scheduling job to automatically delete data in database which has expired.
  - Passes and processes information to and from the frontend successfully.
 
 - Major third module used in backend
@@ -54,7 +54,7 @@ The frontend provides the user interface for the DHS agents. It allows DHS agent
 
 ## File structure
 
- - routes/index.js, nearly all of the works menthioned are finished within this file.
+ - routes/index.js, nearly all of the works mentioned are finished within this file.
  - app.js, setting the environment and global variables of this application
  - db.js, interface used to connect to database.
  - Query, sql statement used to create tables of database.
