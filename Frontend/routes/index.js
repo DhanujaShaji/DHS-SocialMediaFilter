@@ -17,7 +17,6 @@ const deletePasscodeTimeSetting = '0 * * * * *'
 const debug = false;
 const defaultMaxiumTweetsCount = 20;
 
-
 /**
  * sheduled job for delete data which exceeds the expiretime in database.
  * timeSetting indicates when to execute those commands;
@@ -28,12 +27,8 @@ schedule.scheduleJob(testTimeSetting, function () {
             conn = db.getConnection(db.client, db.settings);
             db.connectDB(conn);
         }
-        const deleteTweetsSQL = 'delete from tweets';
         const deleteUserSQL = 'delete from user where userId = ?';
         const getExpireDicisionSQL = 'select decisionId,userId from decision where expireTime >= ?'
-        const deleteDecisionSQL = 'delete from decision where decisionId = ?';
-        conn.query(deleteTweetsSQL, function (err, result) {
-        });
         conn.query(getExpireDicisionSQL, [], function (err, result) {
             if (err) {
                 console.log(err);
@@ -42,8 +37,6 @@ schedule.scheduleJob(testTimeSetting, function () {
             for (var index in result) {
                 var decisionId = result[index]['decisionId'];
                 var userId = result[index]['userId'];
-                conn.query(deleteDecisionSQL, [decisionId], function (err, result) {
-                });
                 conn.query(deleteUserSQL, [userId], function (err, result) {
                 });
             }
@@ -52,6 +45,9 @@ schedule.scheduleJob(testTimeSetting, function () {
     console.log('The answer to life, the universe, and everything!');
 });
 
+/**
+ * Automatically delete expired passcode every minute.
+ */
 schedule.scheduleJob(deletePasscodeTimeSetting, function () {
     if (!conn || !conn._socket.readable) {
         conn = db.getConnection(db.client, db.settings);
@@ -230,14 +226,14 @@ function toPercentage(number) {
 }
 
 /**
- * GET default page.
+ * Default page(root page).
  */
 router.get('/', checkSignIn, function (req, res, next) {
     res.render('login', {title: 'Login Agent Account'});
 });
 
 /**
- *  GET login page.
+ * Login page(get). This page only show the login page.
  */
 router.get('/login', function (req, res, next) {
     if (req.session.agentName) {
@@ -248,7 +244,7 @@ router.get('/login', function (req, res, next) {
 });
 
 /**
- * Get logout out page
+ * Logout out page
  * the session used to identify the user will be destroyed here.
  */
 router.get('/logout', function (req, res) {
@@ -260,8 +256,9 @@ router.get('/logout', function (req, res) {
 });
 
 /**
- * POST login page.
- * this router is used for login process.
+ * Login page(post).
+ * this router is used for login process. When server get this request which contains the username and password,
+ * then server will record the status of this user.
  */
 router.post('/login', function (req, res, next) {
     var action = req.body.action;
@@ -302,7 +299,7 @@ router.post('/login', function (req, res, next) {
 });
 
 /**
- * GET portal page, where you choose which function you want to do, reveiew past decision, genetate new passcode,
+ * Portal page, where you choose which function you want to do, reveiew past decision, genetate new passcode,
  * manage accounts etc.
  */
 router.get('/portal', checkSignIn, function (req, res, next) {
@@ -331,7 +328,7 @@ router.get('/portal', checkSignIn, function (req, res, next) {
 });
 
 /**
- * get passcode page where you can generate new passcode.
+ * Passcode page where you can generate new passcode while the old valid passocde will be set to invalid if exists.
  */
 router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
     var hasPermission = true;
@@ -391,7 +388,8 @@ router.get('/passcode', checkSignIn, connectToDB, function (req, res, next) {
 });
 
 /**
- * GET review page where you review historical decision about a user.
+ * Review page where you review historical decision about a user.And there is access control here as well.
+ * Only supervisor can see all the decisions while an agent can only see the decisions made by himself.
  */
 router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
@@ -401,6 +399,7 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
     if (action === 'home') {
         res.redirect('portal');
     } else {
+        //only supervisor can see all the decision.
         if (agentLevel == SupervisorLevel) {
             const previousDecisionsSQL = "select decisionId, decisionTime, userName, agentName " +
                 "from decision, user, Agent where decision.userId = user.userId &&" +
@@ -426,6 +425,7 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
                 }
             });
         } else {
+            //agent can only see the decisions made by himself.
             const previousDecisionsSQL2 = "select decisionId, decisionTime, userName, agentName " +
                 "from decision, user, Agent where decision.userId = user.userId &&" +
                 " decision.agentId = Agent.agentId && Agent.agentId = ? && decision.valid = 1";
@@ -450,7 +450,8 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
 });
 
 /**
- * GET detail decision page where you can get detail information of a typical decision and make your new decision.
+ * Detail decision page where you can get detail information of a typical decision and make your new decision.
+ * And you can increase the expire time of this decsion as well.
  */
 router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
@@ -460,6 +461,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
     console.log("action:" + action);
 
     if (action === 'review' && typeof(decisionId) !== 'undefined') {
+        //review this typical decision.
         var decisionData = {};
         const getDecisionSQL = 'select decision.userId, decision.decisionId, userName, agentName, value, expireTime ' +
             'from decision inner join user on(decision.userId = user.userId) ' +
@@ -478,7 +480,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             if(err){
                 console.log(err);
             }
-            var decision = 'denied';
+            var decision = 'Failed';
             var userName = result[0].userName;
             var userId = result[0]['userId'];
             if (result[0].value === 1) {
@@ -555,6 +557,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             });
         });
     } else if (action === 'increase' && typeof(decisionId) !== 'undefined') {
+        //increase expire time
         console.log("detail action increase:" + decisionId);
         const increseRetentionSQL = 'update decision set expireTime = ? where decisionId = ?';
         const getRetentionSQL = 'select expireTime from decision where decisionId = ?';
@@ -572,6 +575,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             });
         });
     } else if (action === 'changeDecision' && typeof(decisionId) !== 'undefined') {
+        //change original decision, pass -> fail, fail -> pass
         const changeOriDecision = 'update decision set value = ? where decisionId = ? && valid = 1';
         const getDecision = 'select * from decision where decisionId = ?';
         const addNewDecision = "insert into decision(userId, agentId, value, " +
@@ -628,34 +632,13 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             }
             res.redirect('detail?action=review&id='+decisionId);
         });
-
-        /* conn.query(getDecision, [decisionId], function (err, result) {
-         if (result.length !== 1) {
-         console.log("get more than 1 decision result length:" + result.length);
-         dealwithInternalError(res, true);
-         }
-         var newDecisionId = ++decisionId;
-         var newDecision = !result[0]['value'];
-         var decisionTime = new Date();
-         var expireTime = new Date();
-         expireTime.setDate(expireTime.getDate() + defaultExpiringPeriod);
-
-         conn.query(addNewDecision, [newDecisionId, result[0]['userId'], result[0]['agentId'],
-         newDecision, decisionTime, expireTime, 0], function (err, result3) {
-         dealwithInternalError(res, err);
-         conn.query(addLog, [decisionId, newDecisionId], function (err, result4) {
-         dealwithInternalError(res, err);
-         res.redirect('portal');
-         })
-         });
-         });*/
     } else {
         res.redirect('review');
     }
 });
 
 /**
- * GET submit page. submit userId(twitter) you want to search.
+ * Submit page. submit Twitter Account you want to search.
  */
 router.get('/submit', checkSignIn, connectToDB, function (req, res, next) {
 
@@ -674,7 +657,7 @@ router.get('/submit', checkSignIn, connectToDB, function (req, res, next) {
 
 
 /**
- * GET report page. get stastical report about a userId(twitter)
+ * GET report page. get stastical report about Twitter Account
  */
 router.get('/report', checkSignIn, function (req, res, next) {
     var action = req.query.action;
@@ -694,7 +677,7 @@ router.get('/report', checkSignIn, function (req, res, next) {
             timeout: 10 * 1000
         }
         console.log(options.uri);
-
+        //send http request to data scraper.
         request(options, function (error, response, body) {
             if (error || response.statusCode != 200) {
                 console.log(error);
@@ -707,7 +690,7 @@ router.get('/report', checkSignIn, function (req, res, next) {
                 });
                 return ;
             }
-
+            //find the userId of this twitter account.
             const sql = 'select userId, flagTweetCount, blacklistCount from user where userName = ?';
             const averageSQL = 'select AVG(flagTweetCount) as averageCount, AVG(blacklistCount ) as averageBlack from user';
             conn.query(sql, [account], function (err, result) {
@@ -724,6 +707,7 @@ router.get('/report', checkSignIn, function (req, res, next) {
                 }
                 req.session.userId = result[0].userId;
                 console.log("userId:", result[0].userId);
+                //prepare stastical report.
                 var flagTweetCount = result[0]['flagTweetCount'];
                 var blacklistCount = result[0]['blacklistCount'];
                 conn.query(averageSQL, function (err, result2) {
@@ -754,18 +738,6 @@ router.get('/report', checkSignIn, function (req, res, next) {
                         }];
                     res.render('report', {title: 'Statistic Report', data: data, account: account});
                 })
-                /*data = [
-                 {'title': 'Flagged Tweets:', 'content': [
-                 {'type': 'paragraph', 'content': 'num of flagged tweets] ([percentage]). || Average per traveler: [average number of flagged tweets]'},
-                 {'type': 'paragraph', 'content': 'Ex). 120 (49%). || Average per traveler: 19'}
-                 ]},
-                 {'title': 'Blacklisted Entities Following:', 'content': [
-                 {'type': 'paragraph', 'content': '[num of blacklisted entities following] ([percentage])'},
-                 {'type': 'paragraph', 'content': 'Ex). 30 (12%)'}
-                 ]},
-                 {'title': 'Other Statistic Report:', 'content': [
-                 {'type': 'paragraph', 'content': '......'}
-                 ]}];*/
             });
         });
     } else if (action === 'no' && typeof(account) !== 'undefined') {
@@ -780,7 +752,7 @@ router.get('/report', checkSignIn, function (req, res, next) {
 });
 
 /**
- * GET anonymized tweets page. display detail information about his/her anonymized tweets
+ * Anonymized tweets page. display detail information about his/her anonymized tweets
  */
 router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
     var action = req.query.action;
@@ -862,7 +834,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
 });
 
 /**
- * GET original tweets page. display detail information about his/her original tweets.
+ * Original tweets page. display detail information about his/her original tweets.
  * It can only be accessed by agent with right passcode.
  */
 router.get('/original', checkSignIn, connectToDB, function (req, res, next) {
@@ -962,7 +934,7 @@ router.get('/original', checkSignIn, connectToDB, function (req, res, next) {
 });
 
 /**
- * GET making decision page where agent make their decision about a userId(twitter).
+ * Making decision page where agent make their decision about a userId(twitter).
  */
 router.get('/decision', checkSignIn, connectToDB, function (req, res, next) {
 
@@ -1023,7 +995,7 @@ router.get('/decision', checkSignIn, connectToDB, function (req, res, next) {
 });
 
 /**
- * GET addAccounts page. Surpervisor manage agents' accounts.
+ * AddAccounts page. Surpervisor manage agents' accounts.
  */
 router.get('/addAccounts', checkSignIn, connectToDB, function (req, res, next) {
     const action = req.query.action;
