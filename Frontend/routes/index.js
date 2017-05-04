@@ -8,7 +8,7 @@ var async = require("async");
 var conn = null;
 var SupervisorLevel = 3; //Supervisor level
 const defaultExpiringPeriod = 15; //15 days, expireation time for a decision.
-const defaultIncresePeriod = 30; //30 days, increase time for a decision when choose to increase the expire time.
+const defaultIncresePeriod = 1; //1 Month, increase time for a decision when choose to increase the expire time.
 const pageLimit = 15; //limitation for number of tweets to be displayed on each page.
 const saltRounds = 10; // the number of rounds to be hashed.
 const timeSetting = '0 0 5 * * *' //5:00 AM of each day.
@@ -229,7 +229,6 @@ function toPercentage(number) {
     return ( number * 100).toFixed(2) + '%';
 }
 
-
 /**
  * GET default page.
  */
@@ -417,9 +416,10 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
                             'id': result[index]['decisionId'],
                             'date': result[index]['decisionTime'].toLocaleDateString(),
                             'twitter': result[index]['userName'],
-                            'agent': result[index]['agentName']
+                            'agent': result[index]['agentName'],
                         })
                     }
+                    previousDecisions.sort(dynamicSort('tweetDate'));
                     res.render('review', {title: 'Review Previous Decision', 'previousDecisions': previousDecisions});
                 } else {
                     console.log("review error: result length is 0");
@@ -442,6 +442,7 @@ router.get('/review', checkSignIn, connectToDB, function (req, res, next) {
                         'agent': result[index]['agentName']
                     })
                 }
+                previousDecisions.sort(dynamicSort('tweetDate'));
                 res.render('review', {title: 'Review Previous Decision', 'previousDecisions': previousDecisions});
             });
         }
@@ -469,7 +470,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             "from tweets left join flags2tweets on (tweets.tweetId = flags2tweets.tweetId) " +
             "left join flag on (flags2tweets.flagId = flag.flagId) " +
             "where userId = ? && tweets.flagsCount != 0;";
-        const getOtherDecisionSQL = 'select decisionId, agentName, decisionTime, valid ' +
+        const getOtherDecisionSQL = 'select decisionId, agentName, decisionTime, valid, value ' +
             'from decision inner join user on(decision.userId = user.userId) ' +
             'inner join Agent on(decision.agentId = Agent.agentId) ' +
             'where user.userName = ? && decision.decisionId != ? && decision.valid = 0';
@@ -536,13 +537,17 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
                         });
                     }
                 }
-                decisionData.tweets.sort(dynamicSortMultiple("-type", 'tweetDate'));
+                decisionData.tweets.sort(dynamicSortMultiple("type", 'tweetDate'));
                 conn.query(getOtherDecisionSQL, [userName, decisionId], function (err, otherResult) {
                     for (var index in otherResult) {
+                        var decision = 'Passed';
+                        if(otherResult[index]['value']!=1){
+                            decision = 'Failed';
+                        }
                         decisionData.history.push({
                             'date': otherResult[index].decisionTime.toLocaleDateString(),
                             'agent': otherResult[index].agentName,
-                            'action': 'change decision'
+                            'action': 'Change decision to ' + decision
                         })
                     }
                     res.render('detail', {title: 'Decision Detail', data: decisionData, 'decisionId': decisionId});
@@ -559,10 +564,11 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             }
             var expireTime = result[0]['expireTime'];
             var increasedTime = new Date();
-            increasedTime.setDate(expireTime.getDate() + defaultIncresePeriod);
+            increasedTime.setDate(expireTime.getDate());
+            increasedTime.setMonth(expireTime.getMonth() + defaultIncresePeriod);
             conn.query(increseRetentionSQL, [increasedTime, decisionId], function (err, result) {
                 console.log("increase retention success!");
-                res.redirect('detail');
+                res.redirect('detail?action=review&id='+decisionId);
             });
         });
     } else if (action === 'changeDecision' && typeof(decisionId) !== 'undefined') {
@@ -620,7 +626,7 @@ router.get('/detail', checkSignIn, connectToDB, function (req, res, next) {
             if(err){
                 console.log(err);
             }
-            res.redirect('portal');
+            res.redirect('detail?action=review&id='+decisionId);
         });
 
         /* conn.query(getDecision, [decisionId], function (err, result) {
@@ -833,7 +839,7 @@ router.get('/anonymized', checkSignIn, connectToDB, function (req, res, next) {
                     });
                 }
             }
-            data.sort(dynamicSortMultiple("-type", 'tweetDate'));
+            data.sort(dynamicSortMultiple("type", 'tweetDate'));
             res.render('anonymized', {title: 'Censored Twitter Data', data: data, account: account});
         });
     } else if (action == 'search' && typeof(account) != 'undefined') {
@@ -935,7 +941,7 @@ router.get('/original', checkSignIn, connectToDB, function (req, res, next) {
                             });
                         }
                     }
-                    data.sort(dynamicSortMultiple("-type", 'tweetDate'));
+                    data.sort(dynamicSortMultiple("type", 'tweetDate'));
                     res.render('original', {title: 'Original Tweets', data: data, account: account});
                 });
             } else if (action === 'submit' && typeof(account) !== 'undefined') {
