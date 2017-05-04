@@ -37,7 +37,7 @@ block content
                     h4 Decision History
                     each decision in data['history']
                         div(class="panel panel-primary")
-                            div(class='panel-heading') Change Date: #{decision['date']}
+                            div(class='panel-heading') Date: #{decision['date']}
                             div(class='panel-body')
                                 p=decision['agent'] + ": " + decision['action']
                     hr
