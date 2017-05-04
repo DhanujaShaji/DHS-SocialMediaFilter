@@ -39,6 +39,15 @@ The frontend folder contains the user interface for the DHS agents. It allows DH
 
 ## Backend
 
+### Backend File structure
+
+ - routes/index.js, nearly all of the works are finished within this file. 
+ - app.js, setting the environment and global variables of this application
+ - db.js, interface used to connect to database.
+ - Query, sql statement used to create tables of database.
+ - Database_scheme.png, the database scheme.
+ - package.json, meta data and dependencies of this application.
+
 ### Major Work
 
 #### Component Integration
@@ -51,7 +60,7 @@ The frontend folder contains the user interface for the DHS agents. It allows DH
  - Manage the database to support of other components,like DataScraping+Analysis component.
  - Deploy it in Google Cloud platform so everyone can access it.
 
-#### Server frontend pages:
+#### Functinality:
  - Retrieve data from database and then render the frontend pages requested by user using the data retrieved(14 pages in total).
  - Get input data from user and store the data into database (14 pages in total).
  - Send and receive http request to DataScraping+Analysis component to control the work of that component.
@@ -62,15 +71,6 @@ The frontend folder contains the user interface for the DHS agents. It allows DH
 
 #### Major third module used in backend
  - express, mysqljs, express-session, request, bcrypt, node-schedule, async.
-
-### File structure
-
- - routes/index.js, nearly all of the works mentioned are finished within this file.
- - app.js, setting the environment and global variables of this application
- - db.js, interface used to connect to database.
- - Query, sql statement used to create tables of database.
- - Database_scheme.png, the database scheme.
- - package.json, meta data and dependencies of this application.
 
 ## Censored, Blacklisted and flagged terms 
  - Censored terms came from the sensitive information detailed in the project requirements - Censored.txt
