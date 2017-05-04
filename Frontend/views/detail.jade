@@ -9,7 +9,10 @@ block content
                     p Twitter Handle: 
                         b #{data['twitter']}
                     p Decision: 
-                        b #{data['decision']}
+                        if data['decision'] == 'Passed'
+                            b(style="color:#4caf50;") #{data['decision']}
+                        else 
+                            b(style="color:#f44336;") #{data['decision']}
                     p Agent: 
                         b #{data['agent']}
                     p Expiration: 
