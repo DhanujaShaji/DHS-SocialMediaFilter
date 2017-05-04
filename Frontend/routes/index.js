@@ -692,7 +692,9 @@ router.get('/report', checkSignIn, function (req, res, next) {
             }
             //find the userId of this twitter account.
             const sql = 'select userId, flagTweetCount, blacklistCount from user where userName = ?';
-            const averageSQL = 'select AVG(flagTweetCount) as averageCount, AVG(blacklistCount ) as averageBlack from user';
+            const averageSQL = 'select AVG(flagTweetCount) as averageCount, AVG(blacklistCount ) ' +
+                'as averageBlack from user';
+            const blacklistFollowSQL = 'select * from follow where userId = ?';
             conn.query(sql, [account], function (err, result) {
                 if (err || result == undefined || result === null || result.length !== 1) {
                     console.log("cannot find users!");
@@ -721,22 +723,32 @@ router.get('/report', checkSignIn, function (req, res, next) {
                         + toPercentage(averageCount / defaultMaxiumTweetsCount);
                     var reportString5 = 'Number of blacklisted entities followed: ' + blacklistCount;
                     var reportString6 = 'Average Number of blacklisted entities followed among all travelers: ' + averageBlacklist;
-                    data = [
-                        {
-                            'title': 'Flagged Tweets:', 'content': [
-                            {'type': 'paragraph', 'content': reportString1},
-                            {'type': 'paragraph', 'content': reportString2},
-                            {'type': 'paragraph', 'content': reportString3},
-                            {'type': 'paragraph', 'content': reportString4},
-                        ]
-                        },
-                        {
-                            'title': 'Blacklisted Entities Following:', 'content': [
-                            {'type': 'paragraph', 'content': reportString5},
-                            {'type': 'paragraph', 'content': reportString6}
-                        ]
-                        }];
-                    res.render('report', {title: 'Statistic Report', data: data, account: account});
+                    conn.query(blacklistFollowSQL,[result[0].userId],function (err, result3) {
+                        var reportString7 = 'followings in blacklist: ';
+                        for(var i=0;i<result3.length-1;i++){
+                            var name = '@' + result3[i]['followerName'] + ', ';
+                            reportString7 = reportString7.concat(name);
+                        }
+                        name = '@' + result3[i]['followerName'];
+                        reportString7 = reportString7.concat(name);
+                        data = [
+                            {
+                                'title': 'Flagged Tweets:', 'content': [
+                                {'type': 'paragraph', 'content': reportString1},
+                                {'type': 'paragraph', 'content': reportString2},
+                                {'type': 'paragraph', 'content': reportString3},
+                                {'type': 'paragraph', 'content': reportString4},
+                            ]
+                            },
+                            {
+                                'title': 'Blacklisted Entities Following:', 'content': [
+                                {'type': 'paragraph', 'content': reportString5},
+                                {'type': 'paragraph', 'content': reportString6},
+                                {'type': 'paragraph', 'content': reportString7}
+                            ]
+                            }];
+                        res.render('report', {title: 'Statistic Report', data: data, account: account});
+                    })
                 })
             });
         });
