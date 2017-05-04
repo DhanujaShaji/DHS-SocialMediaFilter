@@ -995,7 +995,7 @@ router.get('/decision', checkSignIn, connectToDB, function (req, res, next) {
         })
         res.render('info', {
             title: 'Decision Confirmation',
-            message: 'Passenger ' + account + " Pass the Twitter Audit",
+            message: 'Passenger ' + account + " Passed the Twitter Audit",
             info: 'You have determined that the traveler’s Twitter ' +
             'Account raises no concerns regarding this traveler’s entry ' +
             'into the United States.'
@@ -1010,7 +1010,7 @@ router.get('/decision', checkSignIn, connectToDB, function (req, res, next) {
         })
         res.render('info', {
             title: 'Decision Confirmation',
-            message: 'Passenger ' + account + " Fail the Twitter Audit",
+            message: 'Passenger ' + account + " Failed the Twitter Audit",
             info: 'You have determined that the traveler’s Twitter ' +
             'Account raises concerns regarding this traveler’s ' +
             'entry into the United States.'
