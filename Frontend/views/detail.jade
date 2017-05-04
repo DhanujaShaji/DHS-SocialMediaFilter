@@ -6,10 +6,14 @@ block content
             form(role='form', action='/detail', method='get', class='f1')
                 h3 Decision Details
                 fieldset
-                    p Twitter Handle: #{data['twitter']}
-                    p Decision: #{data['decision']}
-                    p Agent: #{data['agent']}
-                    p Expiration: #{data['expiration']}
+                    p Twitter Handle: 
+                        b #{data['twitter']}
+                    p Decision: 
+                        b #{data['decision']}
+                    p Agent: 
+                        b #{data['agent']}
+                    p Expiration: 
+                        b #{data['expiration']}
                     div(class="collapse" id="tweets")
                         hr
                         h4 Tweet Information
@@ -43,3 +47,7 @@ block content
                         button(type='button', class='btn btn-submit', name='action', value='back', onclick='history.go(-1);') Back
 
 block script
+    script.
+        $(function () {
+            $('[data-toggle="popover"]').popover()
+        })

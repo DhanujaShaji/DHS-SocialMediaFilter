@@ -8,12 +8,6 @@ Currently, the tool is able to login as well as successfully create a login iden
 
 The process for screening a traveler is complete, and the agent can input a Twitter handle, see a statistical analysis of the person's tweets, and choose to proceed with the process, or make a decision. If they do proceed, they can see a list of tweets, with flagged tweets at the top and sensitive information contained within the tweets will not be visible. In order to see unfiltered tweets, the agent must input a password. Once they do, they can see all the tweets with no filters. Finally, the agent can make a decision, which will be stored, along with the person's flagged tweets and Twitter handle. 
 
-Current bugs: 
-- The tool struggles to pull the tweets for many handles - server issues? 
-- The tool cannot handle emojis within tweets 
-- API limitation - currently set at 20 tweets for demo purposes
-- The flagged tweets are still being filtered 
-- Navigation in the Administration panel is a bit unintuitive
 
 ## Components
 
